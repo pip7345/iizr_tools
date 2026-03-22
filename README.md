@@ -2,6 +2,8 @@
 
 Production-ready Next.js starter using App Router, TypeScript, Tailwind CSS, Prisma, PostgreSQL, Clerk authentication, Zod validation, and Server Actions.
 
+If you are new to Clerk, see [docs/clerk-setup-guide.md](/e:/arbitrage/iizr_tools/docs/clerk-setup-guide.md) for a practical explanation of what it does, how it works in this repo, and how to get the required keys into `.env`.
+
 ## Quick start
 
 If you just want to run the app locally, do this:

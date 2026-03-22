@@ -19,10 +19,6 @@ export type ProjectActionState = {
   };
 };
 
-export const initialProjectActionState: ProjectActionState = {
-  status: "idle",
-};
-
 export async function createProjectAction(
   _previousState: ProjectActionState,
   formData: FormData,

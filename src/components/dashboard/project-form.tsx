@@ -4,12 +4,16 @@ import { useActionState, useEffect, useRef } from "react";
 
 import {
   createProjectAction,
-  initialProjectActionState,
 } from "@/actions/project-actions";
+import type { ProjectActionState } from "@/actions/project-actions";
 import { Button } from "@/components/ui/button";
 import { FormMessage } from "@/components/ui/form-message";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+
+const initialProjectActionState: ProjectActionState = {
+  status: "idle",
+};
 
 export function ProjectForm() {
   const formRef = useRef<HTMLFormElement>(null);
