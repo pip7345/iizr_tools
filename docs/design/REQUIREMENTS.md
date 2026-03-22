@@ -1,0 +1,14 @@
+- Administrators can view a list of all users and their roles.
+- Administrators can make other users administrators and remove admin privileges from other users.
+- Administrators can log in as users without needing their password, for troubleshooting purposes.
+- Each user is both a sponsor and a recruit. A recruit can have exactly one sponsor and many recruits. The database should reflect a one to many relationship with users. Sponsor is optional.
+- Users should be able to generate a referral link unique to them. When another user signs up with that link, they become a recruit of the user that generated the link. The referral link should be in the format of `https://example.com/signup?referral=UNIQUE_CODE`.
+- Users should be able to create a recruit account for a user that hasn't signed up yet. Each account created in this way will have a referral link in the format of `https://example.com/signup?referral=UNIQUE_CODE`. When the recruit signs up with that link, they become a recruit of the user that created the account for them.
+- The database should contain a table for tracking credits. The table will have userid, amount, description, timestamp, a nominator_id (the user that caused the credit to be awarded), and approver_id (the user that approved the credit).
+- Sponsors can nominate they are recruits for credits but the credits must be approved by an administrator before they are awarded. Administrators can approve or reject credit nominations.
+- Users should be able to view their current credit balance and a history of credits awarded and spent.
+- Sponsors should be able to see their recruits and their recruits' recruits in a hierarchical view.
+- Administrators should be able to view all users in a hierarchical view showing sponsors and recruits.
+- Administrators should be able to create, update and delete user credits for any user.
+- Administrators should have a list of all unapproved credit nominations and be able to approve or reject them. There should be an Approve All button.
+
