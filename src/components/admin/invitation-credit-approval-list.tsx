@@ -1,0 +1,104 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+import {
+  approveInvitationCreditAction,
+  rejectInvitationCreditAction,
+} from "@/actions/admin-actions";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
+type Grant = {
+  id: string;
+  amount: number;
+  description: string;
+  createdAt: Date;
+  invitation: {
+    id: string;
+    name: string;
+    email: string;
+    sponsor: { id: string; name: string | null };
+  };
+  nominator: { id: string; name: string | null };
+};
+
+type InvitationCreditApprovalListProps = {
+  grants: Grant[];
+};
+
+export function InvitationCreditApprovalList({ grants }: InvitationCreditApprovalListProps) {
+  const router = useRouter();
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
+
+  async function handleApprove(id: string) {
+    await approveInvitationCreditAction(id);
+    router.refresh();
+  }
+
+  async function handleReject(id: string, formData: FormData) {
+    await rejectInvitationCreditAction(id, formData);
+    setRejectingId(null);
+    router.refresh();
+  }
+
+  if (grants.length === 0) {
+    return (
+      <div className="rounded-[2rem] border border-dashed border-black/15 bg-white/70 p-8 text-center text-sm text-black/60">
+        No pending invitation credit grants.
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {grants.map((grant) => (
+        <article
+          key={grant.id}
+          className="rounded-[2rem] border border-black/10 bg-white p-5 shadow-sm"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p className="font-medium text-[var(--color-foreground)]">
+                {grant.description}
+              </p>
+              <p className="text-sm text-black/55">
+                Invitation: {grant.invitation.name} ({grant.invitation.email}) ·
+                Sponsor: {grant.invitation.sponsor.name} ·
+                Nominated by: {grant.nominator.name}
+              </p>
+            </div>
+            <span className="font-mono text-lg font-semibold text-[var(--color-sage)]">
+              +{grant.amount}
+            </span>
+          </div>
+
+          <div className="mt-3 flex gap-2">
+            <Button variant="primary" onClick={() => handleApprove(grant.id)} className="text-xs">
+              Approve
+            </Button>
+            <Button variant="danger" onClick={() => setRejectingId(grant.id)} className="text-xs">
+              Reject
+            </Button>
+          </div>
+
+          {rejectingId === grant.id && (
+            <form
+              action={(formData) => handleReject(grant.id, formData)}
+              className="mt-3 flex gap-2"
+            >
+              <Input name="reason" placeholder="Rejection reason..." required className="h-9" />
+              <Button type="submit" variant="danger" className="h-9 text-xs">
+                Confirm reject
+              </Button>
+              <Button variant="ghost" onClick={() => setRejectingId(null)} className="h-9 text-xs">
+                Cancel
+              </Button>
+            </form>
+          )}
+        </article>
+      ))}
+    </div>
+  );
+}

@@ -1,0 +1,118 @@
+src/app/(app)/admin/page.tsx(54,11): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: LinkProps<"/admin/users">): JSX.Element', gave the following error.
+    Type '"/admin/users"' is not assignable to type 'UrlObject | RouteImpl<"/admin/users">'.
+  Overload 2 of 2, '(props: LinkProps<"/admin/users">): JSX.Element', gave the following error.
+    Type '"/admin/users"' is not assignable to type 'UrlObject | RouteImpl<"/admin/users">'.
+src/app/(app)/admin/page.tsx(63,11): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: LinkProps<"/admin/nominations">): JSX.Element', gave the following error.
+    Type '"/admin/nominations"' is not assignable to type 'UrlObject | RouteImpl<"/admin/nominations">'.
+  Overload 2 of 2, '(props: LinkProps<"/admin/nominations">): JSX.Element', gave the following error.
+    Type '"/admin/nominations"' is not assignable to type 'UrlObject | RouteImpl<"/admin/nominations">'.
+src/app/(app)/admin/page.tsx(72,11): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: LinkProps<"/admin/credits">): JSX.Element', gave the following error.
+    Type '"/admin/credits"' is not assignable to type 'UrlObject | RouteImpl<"/admin/credits">'.
+  Overload 2 of 2, '(props: LinkProps<"/admin/credits">): JSX.Element', gave the following error.
+    Type '"/admin/credits"' is not assignable to type 'UrlObject | RouteImpl<"/admin/credits">'.
+src/app/(app)/admin/page.tsx(81,11): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: LinkProps<"/admin/hierarchy">): JSX.Element', gave the following error.
+    Type '"/admin/hierarchy"' is not assignable to type 'UrlObject | RouteImpl<"/admin/hierarchy">'.
+  Overload 2 of 2, '(props: LinkProps<"/admin/hierarchy">): JSX.Element', gave the following error.
+    Type '"/admin/hierarchy"' is not assignable to type 'UrlObject | RouteImpl<"/admin/hierarchy">'.
+src/app/(app)/admin/page.tsx(90,11): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: LinkProps<"/admin/invitations">): JSX.Element', gave the following error.
+    Type '"/admin/invitations"' is not assignable to type 'UrlObject | RouteImpl<"/admin/invitations">'.
+  Overload 2 of 2, '(props: LinkProps<"/admin/invitations">): JSX.Element', gave the following error.
+    Type '"/admin/invitations"' is not assignable to type 'UrlObject | RouteImpl<"/admin/invitations">'.
+src/app/(app)/dashboard/page.tsx(45,21): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: LinkProps<"/sponsor">): JSX.Element', gave the following error.
+    Type '"/sponsor"' is not assignable to type 'UrlObject | RouteImpl<"/sponsor">'.
+  Overload 2 of 2, '(props: LinkProps<"/sponsor">): JSX.Element', gave the following error.
+    Type '"/sponsor"' is not assignable to type 'UrlObject | RouteImpl<"/sponsor">'.
+src/app/(app)/dashboard/page.tsx(57,17): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: LinkProps<"/credits">): JSX.Element', gave the following error.
+    Type '"/credits"' is not assignable to type 'UrlObject | RouteImpl<"/credits">'.
+  Overload 2 of 2, '(props: LinkProps<"/credits">): JSX.Element', gave the following error.
+    Type '"/credits"' is not assignable to type 'UrlObject | RouteImpl<"/credits">'.
+src/app/(app)/dashboard/page.tsx(64,17): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: LinkProps<"/recruits">): JSX.Element', gave the following error.
+    Type '"/recruits"' is not assignable to type 'UrlObject | RouteImpl<"/recruits">'.
+  Overload 2 of 2, '(props: LinkProps<"/recruits">): JSX.Element', gave the following error.
+    Type '"/recruits"' is not assignable to type 'UrlObject | RouteImpl<"/recruits">'.
+src/app/(app)/dashboard/page.tsx(71,17): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: LinkProps<"/referrals">): JSX.Element', gave the following error.
+    Type '"/referrals"' is not assignable to type 'UrlObject | RouteImpl<"/referrals">'.
+  Overload 2 of 2, '(props: LinkProps<"/referrals">): JSX.Element', gave the following error.
+    Type '"/referrals"' is not assignable to type 'UrlObject | RouteImpl<"/referrals">'.
+src/app/(app)/dashboard/page.tsx(78,17): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: LinkProps<"/invitations">): JSX.Element', gave the following error.
+    Type '"/invitations"' is not assignable to type 'UrlObject | RouteImpl<"/invitations">'.
+  Overload 2 of 2, '(props: LinkProps<"/invitations">): JSX.Element', gave the following error.
+    Type '"/invitations"' is not assignable to type 'UrlObject | RouteImpl<"/invitations">'.
+src/app/(app)/dashboard/page.tsx(115,17): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: LinkProps<"/profile">): JSX.Element', gave the following error.
+    Type '"/profile"' is not assignable to type 'UrlObject | RouteImpl<"/profile">'.
+  Overload 2 of 2, '(props: LinkProps<"/profile">): JSX.Element', gave the following error.
+    Type '"/profile"' is not assignable to type 'UrlObject | RouteImpl<"/profile">'.
+src/app/(app)/dashboard/page.tsx(133,19): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: LinkProps<"/recruits">): JSX.Element', gave the following error.
+    Type '"/recruits"' is not assignable to type 'UrlObject | RouteImpl<"/recruits">'.
+  Overload 2 of 2, '(props: LinkProps<"/recruits">): JSX.Element', gave the following error.
+    Type '"/recruits"' is not assignable to type 'UrlObject | RouteImpl<"/recruits">'.
+src/app/(app)/invitations/page.tsx(69,31): error TS2322: Type '() => Promise<ActionState>' is not assignable to type 'string | ((formData: FormData) => void | Promise<void>) | undefined'.
+  Type '() => Promise<ActionState>' is not assignable to type '(formData: FormData) => void | Promise<void>'.
+    Type 'Promise<ActionState>' is not assignable to type 'void | Promise<void>'.
+      Type 'Promise<ActionState>' is not assignable to type 'Promise<void>'.
+        Type 'ActionState' is not assignable to type 'void'.
+src/app/(app)/layout.tsx(29,17): error TS2322: Type '() => Promise<ActionState>' is not assignable to type 'string | ((formData: FormData) => void | Promise<void>) | undefined'.
+  Type '() => Promise<ActionState>' is not assignable to type '(formData: FormData) => void | Promise<void>'.
+    Type 'Promise<ActionState>' is not assignable to type 'void | Promise<void>'.
+      Type 'Promise<ActionState>' is not assignable to type 'Promise<void>'.
+        Type 'ActionState' is not assignable to type 'void'.
+src/app/(app)/layout.tsx(57,15): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: LinkProps<"/referrals">): JSX.Element', gave the following error.
+    Type '"/referrals"' is not assignable to type 'UrlObject | RouteImpl<"/referrals">'.
+  Overload 2 of 2, '(props: LinkProps<"/referrals">): JSX.Element', gave the following error.
+    Type '"/referrals"' is not assignable to type 'UrlObject | RouteImpl<"/referrals">'.
+src/app/(app)/layout.tsx(63,15): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: LinkProps<"/invitations">): JSX.Element', gave the following error.
+    Type '"/invitations"' is not assignable to type 'UrlObject | RouteImpl<"/invitations">'.
+  Overload 2 of 2, '(props: LinkProps<"/invitations">): JSX.Element', gave the following error.
+    Type '"/invitations"' is not assignable to type 'UrlObject | RouteImpl<"/invitations">'.
+src/app/(app)/layout.tsx(69,15): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: LinkProps<"/credits">): JSX.Element', gave the following error.
+    Type '"/credits"' is not assignable to type 'UrlObject | RouteImpl<"/credits">'.
+  Overload 2 of 2, '(props: LinkProps<"/credits">): JSX.Element', gave the following error.
+    Type '"/credits"' is not assignable to type 'UrlObject | RouteImpl<"/credits">'.
+src/app/(app)/layout.tsx(75,15): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: LinkProps<"/recruits">): JSX.Element', gave the following error.
+    Type '"/recruits"' is not assignable to type 'UrlObject | RouteImpl<"/recruits">'.
+  Overload 2 of 2, '(props: LinkProps<"/recruits">): JSX.Element', gave the following error.
+    Type '"/recruits"' is not assignable to type 'UrlObject | RouteImpl<"/recruits">'.
+src/app/(app)/layout.tsx(81,21): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: LinkProps<"/admin">): JSX.Element', gave the following error.
+    Type '"/admin"' is not assignable to type 'UrlObject | RouteImpl<"/admin">'.
+  Overload 2 of 2, '(props: LinkProps<"/admin">): JSX.Element', gave the following error.
+    Type '"/admin"' is not assignable to type 'UrlObject | RouteImpl<"/admin">'.
+src/app/(app)/referrals/page.tsx(28,17): error TS2322: Type '() => Promise<ActionState>' is not assignable to type 'string | ((formData: FormData) => void | Promise<void>) | undefined'.
+  Type '() => Promise<ActionState>' is not assignable to type '(formData: FormData) => void | Promise<void>'.
+    Type 'Promise<ActionState>' is not assignable to type 'void | Promise<void>'.
+      Type 'Promise<ActionState>' is not assignable to type 'Promise<void>'.
+        Type 'ActionState' is not assignable to type 'void'.
+src/app/(app)/referrals/page.tsx(69,25): error TS2322: Type '() => Promise<ActionState>' is not assignable to type 'string | ((formData: FormData) => void | Promise<void>) | undefined'.
+  Type '() => Promise<ActionState>' is not assignable to type '(formData: FormData) => void | Promise<void>'.
+    Type 'Promise<ActionState>' is not assignable to type 'void | Promise<void>'.
+      Type 'Promise<ActionState>' is not assignable to type 'Promise<void>'.
+        Type 'ActionState' is not assignable to type 'void'.
+src/components/admin/admin-user-list.tsx(44,17): error TS2345: Argument of type '`/admin/users?${string}`' is not assignable to parameter of type 'RouteImpl<`/admin/users?${string}`>'.
+src/components/dashboard/project-list.tsx(1,15): error TS2305: Module '"@prisma/client/index"' has no exported member 'Project'.
+src/lib/db/projects.ts(3,10): error TS2305: Module '"@prisma/client/index"' has no exported member 'ProjectStatus'.
+src/lib/db/projects.ts(8,17): error TS2339: Property 'project' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/lib/db/projects.ts(15,17): error TS2339: Property 'project' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/lib/db/projects.ts(24,12): error TS2339: Property 'project' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/lib/db/projects.ts(25,12): error TS2339: Property 'project' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/lib/db/projects.ts(28,12): error TS2339: Property 'project' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/lib/db/projects.ts(47,17): error TS2339: Property 'project' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/lib/db/projects.ts(57,32): error TS2339: Property 'project' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/lib/db/projects.ts(72,17): error TS2339: Property 'project' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/lib/db/projects.ts(84,32): error TS2339: Property 'project' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+
