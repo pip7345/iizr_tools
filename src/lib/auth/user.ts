@@ -4,13 +4,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 
 import { prisma } from "@/lib/db/prisma";
 
-export async function requireUser() {
-  const session = await auth();
-
-  if (!session.userId) {
-    return session.redirectToSignIn();
-  }
-
+async function syncUserFromClerk() {
   const clerkUser = await currentUser();
 
   if (!clerkUser) {
@@ -44,4 +38,24 @@ export async function requireUser() {
       name: displayName,
     },
   });
+}
+
+export async function getUserOrNull() {
+  const session = await auth();
+
+  if (!session.userId) {
+    return null;
+  }
+
+  return syncUserFromClerk();
+}
+
+export async function requireUser() {
+  const session = await auth();
+
+  if (!session.userId) {
+    return session.redirectToSignIn();
+  }
+
+  return syncUserFromClerk();
 }

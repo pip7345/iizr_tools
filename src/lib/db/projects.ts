@@ -11,6 +11,32 @@ export async function getProjectsForUser(userId: string) {
   });
 }
 
+export async function getRecentProjectsForUser(userId: string, take = 3) {
+  return prisma.project.findMany({
+    where: { ownerId: userId },
+    orderBy: { createdAt: "desc" },
+    take,
+  });
+}
+
+export async function getProjectLandingStats() {
+  const [totalProjects, activeProjects, archivedProjects] = await prisma.$transaction([
+    prisma.project.count(),
+    prisma.project.count({
+      where: { status: ProjectStatus.ACTIVE },
+    }),
+    prisma.project.count({
+      where: { status: ProjectStatus.ARCHIVED },
+    }),
+  ]);
+
+  return {
+    totalProjects,
+    activeProjects,
+    archivedProjects,
+  };
+}
+
 export async function createProjectForUser(
   userId: string,
   input: {
