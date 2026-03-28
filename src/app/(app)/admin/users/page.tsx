@@ -1,5 +1,6 @@
 import { requireAdmin } from "@/lib/auth/user";
 import { getAllUsers } from "@/lib/db/users";
+import { getCreditBalances } from "@/lib/db/credits";
 import { AdminUserList } from "@/components/admin/admin-user-list";
 
 export const metadata = { title: "Admin: Users" };
@@ -21,6 +22,8 @@ export default async function AdminUsersPage({
     status: status || undefined,
   });
 
+  const creditBalances = await getCreditBalances(users.map((u) => u.id));
+
   return (
     <div className="grid gap-8">
       <section className="grid gap-4 rounded-[2.5rem] bg-[linear-gradient(135deg,rgba(255,255,255,0.94),rgba(244,237,255,0.96))] p-8 shadow-[0_24px_120px_rgba(15,23,42,0.08)]">
@@ -32,7 +35,7 @@ export default async function AdminUsersPage({
         </h1>
       </section>
 
-      <AdminUserList users={users} currentAdminId={admin.id} />
+      <AdminUserList users={users} currentAdminId={admin.id} creditBalances={creditBalances} />
     </div>
   );
 }

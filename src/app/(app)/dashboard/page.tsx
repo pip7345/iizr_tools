@@ -1,8 +1,9 @@
 import Link from "next/link";
+import type { Route } from "next";
 
 import { requireUser } from "@/lib/auth/user";
 import { getCreditBalance } from "@/lib/db/credits";
-import { getRecruitsTree } from "@/lib/db/users";
+import { getRecruitsTree, getUserById } from "@/lib/db/users";
 import { getReferralCodesForUser } from "@/lib/db/referral-codes";
 import { getInvitationsForSponsor } from "@/lib/db/invitations";
 import { Button } from "@/components/ui/button";
@@ -14,12 +15,18 @@ export const metadata = {
 export default async function DashboardPage() {
   const user = await requireUser();
 
-  const [creditBalance, recruits, referralCodes, invitations] = await Promise.all([
+  const [creditBalance, recruits, referralCodes, invitations, userWithSponsor] = await Promise.all([
     getCreditBalance(user.id),
     getRecruitsTree(user.id),
     getReferralCodesForUser(user.id),
     getInvitationsForSponsor(user.id),
+    getUserById(user.id),
   ]);
+
+  const sponsor = userWithSponsor?.sponsor ?? null;
+  const sponsorName = sponsor
+    ? (sponsor.preferredDisplayName ?? sponsor.name ?? sponsor.email)
+    : null;
 
   const pendingInvitations = invitations.filter((i) => i.status === "PENDING");
 
@@ -33,9 +40,16 @@ export default async function DashboardPage() {
           <h1 className="max-w-2xl text-4xl font-semibold tracking-tight text-[var(--color-foreground)] sm:text-5xl">
             Welcome back, {user.preferredDisplayName ?? user.name ?? "there"}.
           </h1>
-          {user.sponsorId ? (
+          {sponsor ? (
             <p className="text-base leading-8 text-black/65">
-              You are sponsored. Manage your referrals, invitations, and credits below.
+              You are sponsored by{" "}
+              <Link
+                href={`/users/${sponsor.id}` as Route}
+                className="font-medium text-[var(--color-accent)] hover:underline"
+              >
+                {sponsorName}
+              </Link>
+              . Manage your referrals, invitations, and credits below.
             </p>
           ) : (
             <div className="flex items-center gap-3">

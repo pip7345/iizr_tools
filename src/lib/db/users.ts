@@ -7,7 +7,7 @@ import { prisma } from "@/lib/db/prisma";
 export async function getUserById(id: string) {
   return prisma.user.findUnique({
     where: { id },
-    include: { sponsor: { select: { id: true, name: true, email: true } } },
+    include: { sponsor: { select: { id: true, name: true, email: true, preferredDisplayName: true } } },
   });
 }
 
@@ -154,6 +154,24 @@ export async function getRootUsers() {
       _count: { select: { recruits: true } },
     },
     orderBy: { name: "asc" },
+  });
+}
+
+export async function getUserPublicProfile(id: string) {
+  return prisma.user.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      name: true,
+      preferredDisplayName: true,
+      bio: true,
+      location: true,
+      role: true,
+      status: true,
+      joinedAt: true,
+      sponsor: { select: { id: true, name: true, preferredDisplayName: true, email: true } },
+      _count: { select: { recruits: true } },
+    },
   });
 }
 

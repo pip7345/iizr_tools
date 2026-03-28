@@ -70,6 +70,8 @@
 - If an invitation is deleted, canceled, expires, or is never claimed, its unconverted invitation credits are voided and never transferred to a user.
 - Negative adjustments should be represented through `CreditTransaction` records.
 - Negative credit transactions do not require a separate category field if the description captures the reason clearly.
+- Users can transfer credits to another user
+
 
 ### Credit Nominations And Approval
 
@@ -90,18 +92,35 @@
 - Administrators can create, update, and delete credit records for any user.
 - Administrators can directly create positive or negative credits without a nomination.
 - An administrator can be both the nominator and the approver for an administrator-created credit.
+- The credit balance (score) for a user is always visible on that user's public profile page.
+- The credit transaction history on a user's profile page is only visible when the viewer is that user or an administrator actively impersonating that user.
+- The credit transaction history should be paginated and sorted by date descending.
+- The admin user management table should display each user's current credit score.
+-
 
 ### Hierarchical Views
 
 - Sponsors can view their recruit hierarchy.
 - Administrators can view the full user hierarchy showing sponsors and recruits.
 - Hierarchical views should use an expandable tree rather than a fixed-depth static list.
+- User names in hierarchical and list views should be clickable links to that user's profile page.
+
+### Public User Profiles
+
+- Every authenticated user has a publicly accessible profile page (visible to any logged-in user).
+- A user's profile page displays their display name, role, status, bio, location, member-since date, recruit count, and sponsor.
+- The sponsor shown on a profile page should be a clickable link to the sponsor's own profile.
+- The credit score (sum of all transactions) is always shown on the profile page to any authenticated viewer.
+- The full paginated credit transaction history is shown on the profile page only to the profile owner or an administrator who is actively impersonating that user.
 
 ### UI Scope
 
 - The first version should include both a user-facing UI and an administrator UI.
 - This is not a backend-only first phase.
-- Notifications and emails are out of scope for the first version.
+
+### Leaderboard
+- Landing page should show a list of top users ranked by credit score with their display name, sponsor name, and credit score.
+
 
 ## Derived Requirements And Implementation Notes
 

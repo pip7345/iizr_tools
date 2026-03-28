@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import type { Route } from "next";
 
 import {
   approveNominationAction,
@@ -110,7 +112,15 @@ export function NominationApprovalList({ nominations }: NominationApprovalListPr
                     {nom.description}
                   </p>
                   <p className="text-sm text-black/55">
-                    For: {nom.user.name ?? nom.user.email} · By: {nom.nominator.name ?? nom.nominator.email}
+                    For:{" "}
+                    <Link href={`/users/${nom.user.id}` as Route} className="hover:text-[var(--color-accent)] hover:underline">
+                      {nom.user.name ?? nom.user.email}
+                    </Link>
+                    {" "}·{" "}
+                    By:{" "}
+                    <Link href={`/users/${nom.nominator.id}` as Route} className="hover:text-[var(--color-accent)] hover:underline">
+                      {nom.nominator.name ?? nom.nominator.email}
+                    </Link>
                   </p>
                 </div>
                 <span className="font-mono text-lg font-semibold text-[var(--color-sage)]">

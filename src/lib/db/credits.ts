@@ -17,6 +17,22 @@ export async function getCreditBalance(userId: string) {
   return result._sum.amount ?? 0;
 }
 
+export async function getCreditBalances(
+  userIds: string[],
+): Promise<Record<string, number>> {
+  if (userIds.length === 0) return {};
+  const rows = await prisma.creditTransaction.groupBy({
+    by: ["userId"],
+    where: { userId: { in: userIds } },
+    _sum: { amount: true },
+  });
+  const map: Record<string, number> = {};
+  for (const row of rows) {
+    map[row.userId] = row._sum.amount ?? 0;
+  }
+  return map;
+}
+
 export async function getCreditHistory(userId: string) {
   return prisma.creditTransaction.findMany({
     where: { userId },
@@ -26,6 +42,25 @@ export async function getCreditHistory(userId: string) {
     },
     orderBy: { createdAt: "desc" },
   });
+}
+
+export async function getCreditHistoryPage(
+  userId: string,
+  page: number,
+  pageSize: number,
+) {
+  const transactions = await prisma.creditTransaction.findMany({
+    where: { userId },
+    include: {
+      nominator: { select: { id: true, name: true } },
+      approver: { select: { id: true, name: true } },
+    },
+    orderBy: { createdAt: "desc" },
+    skip: (page - 1) * pageSize,
+    take: pageSize,
+  });
+  const total = await prisma.creditTransaction.count({ where: { userId } });
+  return { transactions, total };
 }
 
 export async function createAdminCreditTransaction(

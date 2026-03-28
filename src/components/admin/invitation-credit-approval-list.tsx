@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import type { Route } from "next";
 
 import {
   approveInvitationCreditAction,
@@ -64,9 +66,15 @@ export function InvitationCreditApprovalList({ grants }: InvitationCreditApprova
                 {grant.description}
               </p>
               <p className="text-sm text-black/55">
-                Invitation: {grant.invitation.name} ({grant.invitation.email}) ·
-                Sponsor: {grant.invitation.sponsor.name} ·
-                Nominated by: {grant.nominator.name}
+                Invitation: {grant.invitation.name} ({grant.invitation.email})
+                {" "}·{" "}Sponsor:{" "}
+                <Link href={`/users/${grant.invitation.sponsor.id}` as Route} className="hover:text-[var(--color-accent)] hover:underline">
+                  {grant.invitation.sponsor.name}
+                </Link>
+                {" "}·{" "}Nominated by:{" "}
+                <Link href={`/users/${grant.nominator.id}` as Route} className="hover:text-[var(--color-accent)] hover:underline">
+                  {grant.nominator.name}
+                </Link>
               </p>
             </div>
             <span className="font-mono text-lg font-semibold text-[var(--color-sage)]">

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import type { Route } from "next";
 
 import {
@@ -29,9 +30,10 @@ type UserRow = {
 type AdminUserListProps = {
   users: UserRow[];
   currentAdminId: string;
+  creditBalances: Record<string, number>;
 };
 
-export function AdminUserList({ users, currentAdminId }: AdminUserListProps) {
+export function AdminUserList({ users, currentAdminId, creditBalances }: AdminUserListProps) {
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
@@ -108,9 +110,12 @@ export function AdminUserList({ users, currentAdminId }: AdminUserListProps) {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-base font-semibold text-[var(--color-foreground)]">
+                  <Link
+                    href={`/users/${user.id}` as Route}
+                    className="text-base font-semibold text-[var(--color-foreground)] hover:text-[var(--color-accent)] hover:underline"
+                  >
                     {user.preferredDisplayName ?? user.name ?? user.email}
-                  </h3>
+                  </Link>
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                       user.role === "ADMIN"
@@ -133,7 +138,20 @@ export function AdminUserList({ users, currentAdminId }: AdminUserListProps) {
                 <p className="text-sm text-black/55">{user.email}</p>
                 <div className="flex flex-wrap gap-3 text-xs text-black/40">
                   <span>{user._count.recruits} recruit{user._count.recruits === 1 ? "" : "s"}</span>
-                  {user.sponsor && <span>Sponsor: {user.sponsor.name ?? user.sponsor.email}</span>}
+                  <span className={(creditBalances[user.id] ?? 0) >= 0 ? "text-emerald-600 font-medium" : "text-red-500 font-medium"}>
+                    {(creditBalances[user.id] ?? 0) >= 0 ? "+" : ""}{(creditBalances[user.id] ?? 0).toLocaleString()} credits
+                  </span>
+                  {user.sponsor && (
+                    <span>
+                      Sponsor:{" "}
+                      <Link
+                        href={`/users/${user.sponsor.id}` as Route}
+                        className="hover:text-[var(--color-accent)] hover:underline"
+                      >
+                        {user.sponsor.name ?? user.sponsor.email}
+                      </Link>
+                    </span>
+                  )}
                   {!user.sponsor && <span>No sponsor</span>}
                 </div>
               </div>
