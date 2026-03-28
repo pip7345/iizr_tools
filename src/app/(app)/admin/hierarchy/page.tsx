@@ -15,42 +15,42 @@ export default async function AdminHierarchyPage() {
 
   return (
     <div className="grid gap-8">
-      <section className="grid gap-4 rounded-[2.5rem] bg-[linear-gradient(135deg,rgba(255,255,255,0.94),rgba(244,237,255,0.96))] p-8 shadow-[0_24px_120px_rgba(15,23,42,0.08)]">
-        <p className="text-sm font-medium uppercase tracking-[0.3em] text-black/40">
+      <section className="grid gap-4 rounded-lg card-gradient p-8 shadow-lg">
+        <p className="text-sm font-medium uppercase tracking-[0.3em] text-[hsl(var(--muted-foreground))]">
           Admin
         </p>
-        <h1 className="text-4xl font-semibold tracking-tight text-[var(--color-foreground)]">
+        <h1 className="text-4xl font-semibold tracking-tight text-[hsl(var(--foreground))]">
           Full user hierarchy
         </h1>
-        <p className="text-base leading-8 text-black/65">
+        <p className="text-base leading-8 text-[hsl(var(--muted-foreground))]">
           Users without sponsors are shown at the root. Expand nodes to see recruits.
         </p>
       </section>
 
-      <div className="rounded-[2rem] border border-black/10 bg-white p-6 shadow-sm">
+      <div className="rounded-lg border border-[hsl(var(--border))] card-gradient p-6 shadow-sm">
         {rootUsers.length === 0 ? (
-          <p className="text-sm text-black/55">No users in the system.</p>
+          <p className="text-sm text-[hsl(var(--muted-foreground))]">No users in the system.</p>
         ) : (
           <RecruitTree recruits={rootUsers} />
         )}
       </div>
 
       {pendingInvitations.length > 0 && (
-        <section className="rounded-[2rem] border border-amber-200 bg-amber-50 p-6">
-          <h2 className="text-lg font-semibold text-amber-900">
+        <section className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-6">
+          <h2 className="text-lg font-semibold text-amber-300">
             Pending invitations ({pendingInvitations.length})
           </h2>
           <div className="mt-3 space-y-2">
             {pendingInvitations.map((inv) => (
               <div
                 key={inv.id}
-                className="flex items-center justify-between rounded-xl border border-amber-200 bg-white px-4 py-3 text-sm"
+                className="flex items-center justify-between rounded-lg border border-amber-500/30 bg-[hsl(var(--card))] px-4 py-3 text-sm"
               >
                 <div>
-                  <span className="font-medium text-amber-900">{inv.name}</span>
-                  <span className="ml-2 text-amber-700">{inv.email}</span>
+                  <span className="font-medium text-amber-300">{inv.name}</span>
+                  <span className="ml-2 text-amber-400">{inv.email}</span>
                 </div>
-                <span className="text-xs text-amber-600">
+                <span className="text-xs text-amber-400">
                   Sponsor: {inv.sponsor?.name ?? inv.sponsor?.email}
                 </span>
               </div>

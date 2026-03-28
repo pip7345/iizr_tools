@@ -24,14 +24,14 @@ export function InvitationForm() {
     <form
       ref={formRef}
       action={formAction}
-      className="space-y-4 rounded-[2rem] border border-black/10 bg-white p-6 shadow-sm"
+      className="space-y-4 rounded-lg border border-[hsl(var(--border))] card-gradient p-6 shadow-sm"
     >
-      <h2 className="text-lg font-semibold text-[var(--color-foreground)]">
+      <h2 className="text-lg font-semibold text-[hsl(var(--foreground))]">
         Create invitation
       </h2>
 
       <div className="space-y-2">
-        <label htmlFor="name" className="text-sm font-medium text-black/70">
+        <label htmlFor="name" className="text-sm font-medium text-[hsl(var(--foreground))]">
           Name
         </label>
         <Input id="name" name="name" placeholder="Jane Doe" required />
@@ -39,7 +39,7 @@ export function InvitationForm() {
       </div>
 
       <div className="space-y-2">
-        <label htmlFor="email" className="text-sm font-medium text-black/70">
+        <label htmlFor="email" className="text-sm font-medium text-[hsl(var(--foreground))]">
           Email
         </label>
         <Input id="email" name="email" type="email" placeholder="jane@example.com" required />

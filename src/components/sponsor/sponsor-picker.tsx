@@ -47,7 +47,7 @@ export function SponsorPicker({ sponsors }: SponsorPickerProps) {
   }
 
   return (
-    <div className="space-y-4 rounded-[2rem] border border-black/10 bg-white p-6 shadow-sm">
+    <div className="space-y-4 rounded-lg border border-[hsl(var(--border))] card-gradient p-6 shadow-sm">
       <Input
         placeholder="Search sponsors by name or email..."
         value={search}
@@ -58,18 +58,18 @@ export function SponsorPicker({ sponsors }: SponsorPickerProps) {
 
       <div className="max-h-96 space-y-2 overflow-y-auto">
         {filtered.length === 0 ? (
-          <p className="py-4 text-center text-sm text-black/55">No matching sponsors found.</p>
+          <p className="py-4 text-center text-sm text-[hsl(var(--muted-foreground))]">No matching sponsors found.</p>
         ) : (
           filtered.map((sponsor) => (
             <div
               key={sponsor.id}
-              className="flex items-center justify-between rounded-xl border border-black/5 bg-black/2 px-4 py-3"
+              className="flex items-center justify-between rounded-lg border border-[hsl(var(--border))/0.5] bg-[hsl(var(--muted))/0.3] px-4 py-3"
             >
               <div>
-                <p className="text-sm font-medium text-[var(--color-foreground)]">
+                <p className="text-sm font-medium text-[hsl(var(--foreground))]">
                   {sponsor.preferredDisplayName ?? sponsor.name ?? sponsor.email}
                 </p>
-                <p className="text-xs text-black/45">{sponsor.email}</p>
+                <p className="text-xs text-[hsl(var(--muted-foreground))]">{sponsor.email}</p>
               </div>
               <Button
                 variant="secondary"

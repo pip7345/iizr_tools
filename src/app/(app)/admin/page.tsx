@@ -19,31 +19,31 @@ export default async function AdminPage() {
 
   return (
     <div className="grid gap-8">
-      <section className="grid gap-4 rounded-[2.5rem] bg-[linear-gradient(135deg,rgba(255,255,255,0.94),rgba(244,237,255,0.96))] p-8 shadow-[0_24px_120px_rgba(15,23,42,0.08)]">
-        <p className="text-sm font-medium uppercase tracking-[0.3em] text-black/40">
+      <section className="grid gap-4 rounded-lg card-gradient p-8 shadow-lg">
+        <p className="text-sm font-medium uppercase tracking-[0.3em] text-[hsl(var(--muted-foreground))]">
           Administration
         </p>
-        <h1 className="text-4xl font-semibold tracking-tight text-[var(--color-foreground)]">
+        <h1 className="text-4xl font-semibold tracking-tight text-[hsl(var(--foreground))]">
           Admin dashboard
         </h1>
       </section>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <article className="rounded-[2rem] border border-black/10 bg-white p-6 shadow-sm">
-          <p className="text-xs uppercase tracking-[0.24em] text-black/40">Total users</p>
-          <p className="mt-3 text-4xl font-semibold text-[var(--color-foreground)]">{stats.totalUsers}</p>
+        <article className="rounded-lg border border-[hsl(var(--border))] card-gradient p-6 shadow-sm">
+          <p className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">Total users</p>
+          <p className="mt-3 text-4xl font-semibold text-[hsl(var(--foreground))]">{stats.totalUsers}</p>
         </article>
-        <article className="rounded-[2rem] border border-black/10 bg-white p-6 shadow-sm">
-          <p className="text-xs uppercase tracking-[0.24em] text-black/40">Active users</p>
-          <p className="mt-3 text-4xl font-semibold text-[var(--color-sage)]">{stats.activeUsers}</p>
+        <article className="rounded-lg border border-[hsl(var(--border))] card-gradient p-6 shadow-sm">
+          <p className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">Active users</p>
+          <p className="mt-3 text-4xl font-semibold text-emerald-400">{stats.activeUsers}</p>
         </article>
-        <article className="rounded-[2rem] border border-black/10 bg-white p-6 shadow-sm">
-          <p className="text-xs uppercase tracking-[0.24em] text-black/40">Admins</p>
-          <p className="mt-3 text-4xl font-semibold text-[var(--color-accent)]">{stats.adminUsers}</p>
+        <article className="rounded-lg border border-[hsl(var(--border))] card-gradient p-6 shadow-sm">
+          <p className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">Admins</p>
+          <p className="mt-3 text-4xl font-semibold text-gradient">{stats.adminUsers}</p>
         </article>
-        <article className="rounded-[2rem] border border-black/10 bg-white p-6 shadow-sm">
-          <p className="text-xs uppercase tracking-[0.24em] text-black/40">Pending approvals</p>
-          <p className="mt-3 text-4xl font-semibold text-amber-600">
+        <article className="rounded-lg border border-[hsl(var(--border))] card-gradient p-6 shadow-sm">
+          <p className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">Pending approvals</p>
+          <p className="mt-3 text-4xl font-semibold text-amber-400">
             {pendingNominations.length + pendingInvCredits.length}
           </p>
         </article>
@@ -52,46 +52,46 @@ export default async function AdminPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Link
           href="/admin/users"
-          className="rounded-[2rem] border border-black/10 bg-white p-6 shadow-sm transition hover:shadow-md"
+          className="rounded-lg border border-[hsl(var(--border))] card-gradient p-6 shadow-sm transition hover:shadow-md"
         >
-          <h2 className="text-lg font-semibold text-[var(--color-foreground)]">User management</h2>
-          <p className="mt-2 text-sm text-black/55">
+          <h2 className="text-lg font-semibold text-[hsl(var(--foreground))]">User management</h2>
+          <p className="mt-2 text-sm text-[hsl(var(--muted-foreground))]">
             View all users, manage roles, reassign sponsors, start impersonation.
           </p>
         </Link>
         <Link
           href="/admin/nominations"
-          className="rounded-[2rem] border border-black/10 bg-white p-6 shadow-sm transition hover:shadow-md"
+          className="rounded-lg border border-[hsl(var(--border))] card-gradient p-6 shadow-sm transition hover:shadow-md"
         >
-          <h2 className="text-lg font-semibold text-[var(--color-foreground)]">Credit nominations</h2>
-          <p className="mt-2 text-sm text-black/55">
+          <h2 className="text-lg font-semibold text-[hsl(var(--foreground))]">Credit nominations</h2>
+          <p className="mt-2 text-sm text-[hsl(var(--muted-foreground))]">
             {pendingNominations.length} pending nomination{pendingNominations.length === 1 ? "" : "s"} · {pendingInvCredits.length} pending invitation credit{pendingInvCredits.length === 1 ? "" : "s"}
           </p>
         </Link>
         <Link
           href="/admin/credits"
-          className="rounded-[2rem] border border-black/10 bg-white p-6 shadow-sm transition hover:shadow-md"
+          className="rounded-lg border border-[hsl(var(--border))] card-gradient p-6 shadow-sm transition hover:shadow-md"
         >
-          <h2 className="text-lg font-semibold text-[var(--color-foreground)]">Credit management</h2>
-          <p className="mt-2 text-sm text-black/55">
+          <h2 className="text-lg font-semibold text-[hsl(var(--foreground))]">Credit management</h2>
+          <p className="mt-2 text-sm text-[hsl(var(--muted-foreground))]">
             Directly create, edit, or delete credit transactions for any user.
           </p>
         </Link>
         <Link
           href="/admin/hierarchy"
-          className="rounded-[2rem] border border-black/10 bg-white p-6 shadow-sm transition hover:shadow-md"
+          className="rounded-lg border border-[hsl(var(--border))] card-gradient p-6 shadow-sm transition hover:shadow-md"
         >
-          <h2 className="text-lg font-semibold text-[var(--color-foreground)]">Full hierarchy</h2>
-          <p className="mt-2 text-sm text-black/55">
+          <h2 className="text-lg font-semibold text-[hsl(var(--foreground))]">Full hierarchy</h2>
+          <p className="mt-2 text-sm text-[hsl(var(--muted-foreground))]">
             View the complete sponsor/recruit tree for all users.
           </p>
         </Link>
         <Link
           href="/admin/invitations"
-          className="rounded-[2rem] border border-black/10 bg-white p-6 shadow-sm transition hover:shadow-md"
+          className="rounded-lg border border-[hsl(var(--border))] card-gradient p-6 shadow-sm transition hover:shadow-md"
         >
-          <h2 className="text-lg font-semibold text-[var(--color-foreground)]">Invitations</h2>
-          <p className="mt-2 text-sm text-black/55">
+          <h2 className="text-lg font-semibold text-[hsl(var(--foreground))]">Invitations</h2>
+          <p className="mt-2 text-sm text-[hsl(var(--muted-foreground))]">
             {pendingInvitations.length} pending invitation{pendingInvitations.length === 1 ? "" : "s"} across all sponsors.
           </p>
         </Link>

@@ -13,17 +13,17 @@ export default async function AdminInvitationsPage() {
 
   return (
     <div className="grid gap-8">
-      <section className="grid gap-4 rounded-[2.5rem] bg-[linear-gradient(135deg,rgba(255,255,255,0.94),rgba(244,237,255,0.96))] p-8 shadow-[0_24px_120px_rgba(15,23,42,0.08)]">
-        <p className="text-sm font-medium uppercase tracking-[0.3em] text-black/40">
+      <section className="grid gap-4 rounded-lg card-gradient p-8 shadow-lg">
+        <p className="text-sm font-medium uppercase tracking-[0.3em] text-[hsl(var(--muted-foreground))]">
           Admin
         </p>
-        <h1 className="text-4xl font-semibold tracking-tight text-[var(--color-foreground)]">
+        <h1 className="text-4xl font-semibold tracking-tight text-[hsl(var(--foreground))]">
           All pending invitations
         </h1>
       </section>
 
       {invitations.length === 0 ? (
-        <div className="rounded-[2rem] border border-dashed border-black/15 bg-white/70 p-8 text-center text-sm text-black/60">
+        <div className="rounded-lg border border-dashed border-[hsl(var(--border))] bg-[hsl(var(--card))/0.7] p-8 text-center text-sm text-[hsl(var(--muted-foreground))]">
           No pending invitations.
         </div>
       ) : (
@@ -31,30 +31,30 @@ export default async function AdminInvitationsPage() {
           {invitations.map((inv) => (
             <article
               key={inv.id}
-              className="rounded-[2rem] border border-black/10 bg-white p-5 shadow-sm"
+              className="rounded-lg border border-[hsl(var(--border))] card-gradient p-5 shadow-sm"
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <h3 className="text-base font-semibold text-[var(--color-foreground)]">
+                    <h3 className="text-base font-semibold text-[hsl(var(--foreground))]">
                       {inv.name}
                     </h3>
-                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                    <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-xs font-medium text-amber-400">
                       pending
                     </span>
                   </div>
-                  <p className="text-sm text-black/55">{inv.email}</p>
-                  <p className="text-xs text-black/40">
+                  <p className="text-sm text-[hsl(var(--muted-foreground))]">{inv.email}</p>
+                  <p className="text-xs text-[hsl(var(--muted-foreground))]">
                     Sponsor: {inv.sponsor?.name ?? inv.sponsor?.email} ·
                     Created {formatDate(inv.createdAt)}
                   </p>
                   {inv.creditGrants.length > 0 && (
-                    <p className="text-xs text-black/40">
+                    <p className="text-xs text-[hsl(var(--muted-foreground))]">
                       {inv.creditGrants.length} credit grant{inv.creditGrants.length === 1 ? "" : "s"}
                     </p>
                   )}
                 </div>
-                <code className="rounded-xl bg-black/5 px-3 py-1 font-mono text-xs">
+                <code className="rounded-lg bg-[hsl(var(--muted))/0.5] px-3 py-1 font-mono text-xs">
                   {inv.referralCode.code}
                 </code>
               </div>

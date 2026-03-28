@@ -15,16 +15,22 @@ export default async function HomePage() {
   const stats = await getUserStats();
 
   return (
-    <main className="relative overflow-hidden">
-      <div className="absolute inset-x-0 top-0 -z-10 h-[40rem] bg-[radial-gradient(circle_at_top,_rgba(212,86,39,0.28),_transparent_38%),radial-gradient(circle_at_20%_20%,_rgba(10,84,74,0.18),_transparent_24%),linear-gradient(180deg,#fdf8f3_0%,#f5efe8_45%,#f3ede7_100%)]" />
+    <main className="relative overflow-hidden bg-[hsl(var(--background))]">
+      {/* Animated blobs */}
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="bg-glow-fuchsia animate-blob absolute -left-40 top-0 h-[600px] w-[600px] opacity-40" />
+        <div className="bg-glow-blue animate-blob animation-delay-2000 absolute -right-40 top-40 h-[500px] w-[500px] opacity-30" />
+        <div className="bg-glow-cyan animate-blob animation-delay-4000 absolute bottom-0 left-1/3 h-[400px] w-[400px] opacity-25" />
+      </div>
+
       <section className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-8">
         <header className="flex items-center justify-between py-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.26em] text-black/40">
+            <p className="text-xs uppercase tracking-[0.26em] text-[hsl(var(--muted-foreground))]">
               Referral &amp; Credits Platform
             </p>
-            <h1 className="text-xl font-semibold text-[var(--color-foreground)]">
-              iizr_tools
+            <h1 className="text-xl font-semibold text-gradient">
+              iiZR Tools
             </h1>
           </div>
           <div className="flex items-center gap-3">
@@ -51,13 +57,13 @@ export default async function HomePage() {
         <div className="grid flex-1 gap-12 py-16 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)] lg:items-start">
           <div className="space-y-10">
             <div className="space-y-5">
-              <p className="inline-flex rounded-full bg-white/80 px-4 py-2 text-xs font-medium uppercase tracking-[0.26em] text-black/45 shadow-sm backdrop-blur">
+              <p className="inline-flex rounded-full border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-4 py-2 text-xs font-medium uppercase tracking-[0.26em] text-[hsl(var(--muted-foreground))] shadow-sm backdrop-blur">
                 Sponsor · Recruit · Earn
               </p>
-              <h2 className="max-w-4xl text-5xl font-semibold leading-[1.02] tracking-tight text-[var(--color-foreground)] sm:text-6xl">
+              <h2 className="max-w-4xl text-5xl font-semibold leading-[1.02] tracking-tight text-[hsl(var(--foreground))] sm:text-6xl">
                 Build your network, earn credits, grow together.
               </h2>
-              <p className="max-w-2xl text-lg leading-9 text-black/65">
+              <p className="max-w-2xl text-lg leading-9 text-[hsl(var(--muted-foreground))]">
                 Create referral links, invite new members, nominate credits for your recruits, and track your network hierarchy — all in one place.
               </p>
             </div>
@@ -65,7 +71,7 @@ export default async function HomePage() {
             <div className="flex flex-wrap gap-4">
               <Link
                 href="/dashboard"
-                className="inline-flex h-11 items-center justify-center rounded-full bg-[var(--color-accent)] px-7 text-sm font-medium text-white shadow-[0_10px_30px_rgba(212,86,39,0.28)] transition hover:bg-[var(--color-accent-strong)]"
+                className="btn-gradient inline-flex h-11 items-center justify-center rounded-full px-7 text-sm font-medium text-white shadow-lg transition hover:opacity-90"
               >
                 Open dashboard
               </Link>
@@ -77,34 +83,34 @@ export default async function HomePage() {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-3" id="platform-stats">
-              <article className="rounded-[2rem] border border-white/70 bg-white/75 p-5 shadow-sm backdrop-blur">
-                <p className="text-xs uppercase tracking-[0.24em] text-black/40">Total users</p>
-                <p className="mt-3 text-4xl font-semibold text-[var(--color-foreground)]">
+              <article className="rounded-lg border border-[hsl(var(--border))] card-gradient p-5 shadow-sm backdrop-blur">
+                <p className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">Total users</p>
+                <p className="mt-3 text-4xl font-semibold text-[hsl(var(--foreground))]">
                   {stats.totalUsers}
                 </p>
               </article>
-              <article className="rounded-[2rem] border border-white/70 bg-white/75 p-5 shadow-sm backdrop-blur">
-                <p className="text-xs uppercase tracking-[0.24em] text-black/40">Active</p>
-                <p className="mt-3 text-4xl font-semibold text-[var(--color-sage)]">
+              <article className="rounded-lg border border-[hsl(var(--border))] card-gradient p-5 shadow-sm backdrop-blur">
+                <p className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">Active</p>
+                <p className="mt-3 text-4xl font-semibold text-emerald-400">
                   {stats.activeUsers}
                 </p>
               </article>
-              <article className="rounded-[2rem] border border-white/70 bg-white/75 p-5 shadow-sm backdrop-blur">
-                <p className="text-xs uppercase tracking-[0.24em] text-black/40">Administrators</p>
-                <p className="mt-3 text-4xl font-semibold text-[var(--color-accent)]">
+              <article className="rounded-lg border border-[hsl(var(--border))] card-gradient p-5 shadow-sm backdrop-blur">
+                <p className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">Administrators</p>
+                <p className="mt-3 text-4xl font-semibold text-gradient">
                   {stats.adminUsers}
                 </p>
               </article>
             </div>
           </div>
 
-          <aside className="rounded-[2.5rem] border border-white/60 bg-white/75 p-8 shadow-[0_25px_120px_rgba(15,23,42,0.12)] backdrop-blur">
-            <p className="text-xs uppercase tracking-[0.3em] text-black/40">
+          <aside className="rounded-lg border border-[hsl(var(--border))] card-gradient p-8 shadow-lg backdrop-blur">
+            <p className="text-xs uppercase tracking-[0.3em] text-[hsl(var(--muted-foreground))]">
               {user ? "Your account" : "How it works"}
             </p>
 
             {user ? (
-              <div className="mt-6 space-y-4 text-sm text-black/70">
+              <div className="mt-6 space-y-4 text-sm text-[hsl(var(--foreground))]">
                 <p>
                   Welcome back, <strong>{user.name}</strong>. Head to your dashboard to manage referrals, credits, and invitations.
                 </p>
@@ -113,19 +119,19 @@ export default async function HomePage() {
                 </Link>
               </div>
             ) : (
-              <div className="mt-6 space-y-4 text-sm leading-7 text-black/65">
+              <div className="mt-6 space-y-4 text-sm leading-7 text-[hsl(var(--muted-foreground))]">
                 <div className="space-y-3">
-                  <div className="rounded-2xl border border-black/5 bg-black/2 px-4 py-3">
-                    <p className="font-medium text-[var(--color-foreground)]">1. Sign up</p>
-                    <p className="text-black/55">Create your account — optionally through a referral link.</p>
+                  <div className="rounded-lg border border-[hsl(var(--border))/0.5] bg-[hsl(var(--muted))/0.3] px-4 py-3">
+                    <p className="font-medium text-[hsl(var(--foreground))]">1. Sign up</p>
+                    <p className="text-[hsl(var(--muted-foreground))]">Create your account — optionally through a referral link.</p>
                   </div>
-                  <div className="rounded-2xl border border-black/5 bg-black/2 px-4 py-3">
-                    <p className="font-medium text-[var(--color-foreground)]">2. Refer others</p>
-                    <p className="text-black/55">Generate referral codes and invite people to join your network.</p>
+                  <div className="rounded-lg border border-[hsl(var(--border))/0.5] bg-[hsl(var(--muted))/0.3] px-4 py-3">
+                    <p className="font-medium text-[hsl(var(--foreground))]">2. Refer others</p>
+                    <p className="text-[hsl(var(--muted-foreground))]">Generate referral codes and invite people to join your network.</p>
                   </div>
-                  <div className="rounded-2xl border border-black/5 bg-black/2 px-4 py-3">
-                    <p className="font-medium text-[var(--color-foreground)]">3. Earn credits</p>
-                    <p className="text-black/55">Sponsors nominate credits for recruits. Admins approve them.</p>
+                  <div className="rounded-lg border border-[hsl(var(--border))/0.5] bg-[hsl(var(--muted))/0.3] px-4 py-3">
+                    <p className="font-medium text-[hsl(var(--foreground))]">3. Earn credits</p>
+                    <p className="text-[hsl(var(--muted-foreground))]">Sponsors nominate credits for recruits. Admins approve them.</p>
                   </div>
                 </div>
               </div>

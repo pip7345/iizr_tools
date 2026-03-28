@@ -22,13 +22,13 @@ export default async function CreditsPage() {
 
   return (
     <div className="grid gap-8">
-      <section className="grid gap-4 rounded-[2.5rem] bg-[linear-gradient(135deg,rgba(255,255,255,0.94),rgba(255,244,238,0.96))] p-8 shadow-[0_24px_120px_rgba(15,23,42,0.08)]">
-        <p className="text-sm font-medium uppercase tracking-[0.3em] text-black/40">Credits</p>
+      <section className="grid gap-4 rounded-lg card-gradient p-8 shadow-lg">
+        <p className="text-sm font-medium uppercase tracking-[0.3em] text-[hsl(var(--muted-foreground))]">Credits</p>
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <h1 className="text-4xl font-semibold tracking-tight text-[var(--color-foreground)]">
+          <h1 className="text-4xl font-semibold tracking-tight text-[hsl(var(--foreground))]">
             Your credits
           </h1>
-          <div className="rounded-2xl bg-[var(--color-sage)] px-6 py-3 text-white">
+          <div className="rounded-lg bg-emerald-500/20 px-6 py-3 text-emerald-400">
             <p className="text-xs uppercase tracking-widest opacity-70">Balance</p>
             <p className="text-3xl font-semibold">{balance}</p>
           </div>
@@ -45,29 +45,29 @@ export default async function CreditsPage() {
 
         <div className="grid gap-6">
           {/* Transaction History */}
-          <section className="rounded-[2rem] border border-black/10 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-[var(--color-foreground)]">
+          <section className="rounded-lg border border-[hsl(var(--border))] card-gradient p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-[hsl(var(--foreground))]">
               Transaction history
             </h2>
             {history.length === 0 ? (
-              <p className="mt-4 text-sm text-black/55">No credit transactions yet.</p>
+              <p className="mt-4 text-sm text-[hsl(var(--muted-foreground))]">No credit transactions yet.</p>
             ) : (
               <div className="mt-4 space-y-2">
                 {history.map((tx) => (
                   <div
                     key={tx.id}
-                    className="flex items-center justify-between rounded-xl border border-black/5 px-4 py-3 text-sm"
+                    className="flex items-center justify-between rounded-lg border border-[hsl(var(--border))/0.5] px-4 py-3 text-sm"
                   >
                     <div>
                       <p className="font-medium">{tx.description}</p>
-                      <p className="text-xs text-black/40">
+                      <p className="text-xs text-[hsl(var(--muted-foreground))]">
                         {formatDate(tx.createdAt)}
                         {tx.nominator && ` · by ${tx.nominator.name}`}
                       </p>
                     </div>
                     <span
                       className={`font-mono font-semibold ${
-                        tx.amount >= 0 ? "text-emerald-600" : "text-red-600"
+                        tx.amount >= 0 ? "text-emerald-400" : "text-red-400"
                       }`}
                     >
                       {tx.amount >= 0 ? "+" : ""}
@@ -80,26 +80,26 @@ export default async function CreditsPage() {
           </section>
 
           {/* Nominations */}
-          <section className="rounded-[2rem] border border-black/10 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-[var(--color-foreground)]">
+          <section className="rounded-lg border border-[hsl(var(--border))] card-gradient p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-[hsl(var(--foreground))]">
               Nominations
             </h2>
             {nominations.length === 0 ? (
-              <p className="mt-4 text-sm text-black/55">No nominations yet.</p>
+              <p className="mt-4 text-sm text-[hsl(var(--muted-foreground))]">No nominations yet.</p>
             ) : (
               <div className="mt-4 space-y-2">
                 {nominations.map((nom) => (
                   <div
                     key={nom.id}
-                    className="flex items-center justify-between rounded-xl border border-black/5 px-4 py-3 text-sm"
+                    className="flex items-center justify-between rounded-lg border border-[hsl(var(--border))/0.5] px-4 py-3 text-sm"
                   >
                     <div>
                       <p className="font-medium">{nom.description}</p>
-                      <p className="text-xs text-black/40">
+                      <p className="text-xs text-[hsl(var(--muted-foreground))]">
                         For {nom.user.name} · by {nom.nominator.name} · {formatDate(nom.createdAt)}
                       </p>
                       {nom.rejectionReason && (
-                        <p className="mt-1 text-xs text-red-600">
+                        <p className="mt-1 text-xs text-red-400">
                           Rejected: {nom.rejectionReason}
                         </p>
                       )}
@@ -109,10 +109,10 @@ export default async function CreditsPage() {
                       <span
                         className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                           nom.status === "APPROVED"
-                            ? "bg-emerald-100 text-emerald-700"
+                            ? "bg-emerald-500/20 text-emerald-400"
                             : nom.status === "PENDING"
-                              ? "bg-amber-100 text-amber-700"
-                              : "bg-red-100 text-red-700"
+                              ? "bg-amber-500/20 text-amber-400"
+                              : "bg-red-500/20 text-red-400"
                         }`}
                       >
                         {nom.status.toLowerCase()}

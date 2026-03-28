@@ -28,15 +28,15 @@ export function InvitationCreditForm({ invitationId }: InvitationCreditFormProps
     <form
       ref={formRef}
       action={formAction}
-      className="mt-3 flex flex-wrap items-end gap-2 rounded-xl border border-dashed border-black/10 bg-black/2 p-3"
+      className="mt-3 flex flex-wrap items-end gap-2 rounded-lg border border-dashed border-[hsl(var(--border))] bg-[hsl(var(--muted))/0.3] p-3"
     >
       <input type="hidden" name="invitationId" value={invitationId} />
       <div className="flex-1 space-y-1">
-        <label className="text-xs text-black/50">Amount</label>
+        <label className="text-xs text-[hsl(var(--muted-foreground))]">Amount</label>
         <Input name="amount" type="number" min="1" placeholder="100" required className="h-9" />
       </div>
       <div className="flex-[2] space-y-1">
-        <label className="text-xs text-black/50">Description</label>
+        <label className="text-xs text-[hsl(var(--muted-foreground))]">Description</label>
         <Input name="description" placeholder="Signup bonus" required className="h-9" />
       </div>
       <Button type="submit" variant="secondary" disabled={pending} className="h-9 px-3 text-xs">

@@ -47,7 +47,7 @@ export function InvitationCreditApprovalList({ grants }: InvitationCreditApprova
 
   if (grants.length === 0) {
     return (
-      <div className="rounded-[2rem] border border-dashed border-black/15 bg-white/70 p-8 text-center text-sm text-black/60">
+      <div className="rounded-lg border border-dashed border-[hsl(var(--border))] bg-[hsl(var(--card))/0.7] p-8 text-center text-sm text-[hsl(var(--muted-foreground))]">
         No pending invitation credit grants.
       </div>
     );
@@ -58,26 +58,26 @@ export function InvitationCreditApprovalList({ grants }: InvitationCreditApprova
       {grants.map((grant) => (
         <article
           key={grant.id}
-          className="rounded-[2rem] border border-black/10 bg-white p-5 shadow-sm"
+          className="rounded-lg border border-[hsl(var(--border))] card-gradient p-5 shadow-sm"
         >
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <p className="font-medium text-[var(--color-foreground)]">
+              <p className="font-medium text-[hsl(var(--foreground))]">
                 {grant.description}
               </p>
-              <p className="text-sm text-black/55">
+              <p className="text-sm text-[hsl(var(--muted-foreground))]">
                 Invitation: {grant.invitation.name} ({grant.invitation.email})
                 {" "}·{" "}Sponsor:{" "}
-                <Link href={`/users/${grant.invitation.sponsor.id}` as Route} className="hover:text-[var(--color-accent)] hover:underline">
+                <Link href={`/users/${grant.invitation.sponsor.id}` as Route} className="hover:text-[hsl(var(--primary))] hover:underline">
                   {grant.invitation.sponsor.name}
                 </Link>
                 {" "}·{" "}Nominated by:{" "}
-                <Link href={`/users/${grant.nominator.id}` as Route} className="hover:text-[var(--color-accent)] hover:underline">
+                <Link href={`/users/${grant.nominator.id}` as Route} className="hover:text-[hsl(var(--primary))] hover:underline">
                   {grant.nominator.name}
                 </Link>
               </p>
             </div>
-            <span className="font-mono text-lg font-semibold text-[var(--color-sage)]">
+            <span className="font-mono text-lg font-semibold text-emerald-400">
               +{grant.amount}
             </span>
           </div>

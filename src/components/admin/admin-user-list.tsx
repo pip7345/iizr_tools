@@ -81,7 +81,7 @@ export function AdminUserList({ users, currentAdminId, creditBalances }: AdminUs
         <select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
-          className="h-11 rounded-2xl border border-black/10 bg-white px-3 text-sm"
+          className="h-11 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 text-sm"
         >
           <option value="">All roles</option>
           <option value="ADMIN">Admin</option>
@@ -90,7 +90,7 @@ export function AdminUserList({ users, currentAdminId, creditBalances }: AdminUs
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="h-11 rounded-2xl border border-black/10 bg-white px-3 text-sm"
+          className="h-11 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 text-sm"
         >
           <option value="">All statuses</option>
           <option value="ACTIVE">Active</option>
@@ -105,22 +105,22 @@ export function AdminUserList({ users, currentAdminId, creditBalances }: AdminUs
         {users.map((user) => (
           <article
             key={user.id}
-            className="rounded-[2rem] border border-black/10 bg-white p-5 shadow-sm"
+            className="rounded-lg border border-[hsl(var(--border))] card-gradient p-5 shadow-sm"
           >
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <Link
                     href={`/users/${user.id}` as Route}
-                    className="text-base font-semibold text-[var(--color-foreground)] hover:text-[var(--color-accent)] hover:underline"
+                    className="text-base font-semibold text-[hsl(var(--foreground))] hover:text-[hsl(var(--primary))] hover:underline"
                   >
                     {user.preferredDisplayName ?? user.name ?? user.email}
                   </Link>
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                       user.role === "ADMIN"
-                        ? "bg-purple-100 text-purple-700"
-                        : "bg-black/5 text-black/55"
+                        ? "bg-purple-500/20 text-purple-400"
+                        : "bg-[hsl(var(--muted))/0.5] text-[hsl(var(--muted-foreground))]"
                     }`}
                   >
                     {user.role.toLowerCase()}
@@ -128,17 +128,17 @@ export function AdminUserList({ users, currentAdminId, creditBalances }: AdminUs
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs ${
                       user.status === "ACTIVE"
-                        ? "bg-emerald-100 text-emerald-700"
-                        : "bg-red-100 text-red-700"
+                        ? "bg-emerald-500/20 text-emerald-400"
+                        : "bg-red-500/20 text-red-400"
                     }`}
                   >
                     {user.status.toLowerCase()}
                   </span>
                 </div>
-                <p className="text-sm text-black/55">{user.email}</p>
-                <div className="flex flex-wrap gap-3 text-xs text-black/40">
+                <p className="text-sm text-[hsl(var(--muted-foreground))]">{user.email}</p>
+                <div className="flex flex-wrap gap-3 text-xs text-[hsl(var(--muted-foreground))]">
                   <span>{user._count.recruits} recruit{user._count.recruits === 1 ? "" : "s"}</span>
-                  <span className={(creditBalances[user.id] ?? 0) >= 0 ? "text-emerald-600 font-medium" : "text-red-500 font-medium"}>
+                  <span className={(creditBalances[user.id] ?? 0) >= 0 ? "text-emerald-400 font-medium" : "text-red-400 font-medium"}>
                     {(creditBalances[user.id] ?? 0) >= 0 ? "+" : ""}{(creditBalances[user.id] ?? 0).toLocaleString()} credits
                   </span>
                   {user.sponsor && (
@@ -146,7 +146,7 @@ export function AdminUserList({ users, currentAdminId, creditBalances }: AdminUs
                       Sponsor:{" "}
                       <Link
                         href={`/users/${user.sponsor.id}` as Route}
-                        className="hover:text-[var(--color-accent)] hover:underline"
+                        className="hover:text-[hsl(var(--primary))] hover:underline"
                       >
                         {user.sponsor.name ?? user.sponsor.email}
                       </Link>
@@ -184,7 +184,7 @@ export function AdminUserList({ users, currentAdminId, creditBalances }: AdminUs
         ))}
 
         {users.length === 0 && (
-          <div className="rounded-[2rem] border border-dashed border-black/15 bg-white/70 p-8 text-center text-sm text-black/60">
+          <div className="rounded-lg border border-dashed border-[hsl(var(--border))] bg-[hsl(var(--card))/0.7] p-8 text-center text-sm text-[hsl(var(--muted-foreground))]">
             No users match the current filters.
           </div>
         )}

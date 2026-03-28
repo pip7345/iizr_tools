@@ -31,10 +31,10 @@ export function ProfileForm({ preferredDisplayName, bio, location }: ProfileForm
     <form
       ref={formRef}
       action={formAction}
-      className="space-y-4 rounded-[2rem] border border-black/10 bg-white p-6 shadow-sm"
+      className="space-y-4 rounded-lg border border-[hsl(var(--border))] card-gradient p-6 shadow-sm"
     >
       <div className="space-y-2">
-        <label htmlFor="preferredDisplayName" className="text-sm font-medium text-black/70">
+        <label htmlFor="preferredDisplayName" className="text-sm font-medium text-[hsl(var(--foreground))]">
           Display name
         </label>
         <Input
@@ -46,7 +46,7 @@ export function ProfileForm({ preferredDisplayName, bio, location }: ProfileForm
       </div>
 
       <div className="space-y-2">
-        <label htmlFor="bio" className="text-sm font-medium text-black/70">
+        <label htmlFor="bio" className="text-sm font-medium text-[hsl(var(--foreground))]">
           Bio
         </label>
         <Textarea
@@ -59,7 +59,7 @@ export function ProfileForm({ preferredDisplayName, bio, location }: ProfileForm
       </div>
 
       <div className="space-y-2">
-        <label htmlFor="location" className="text-sm font-medium text-black/70">
+        <label htmlFor="location" className="text-sm font-medium text-[hsl(var(--foreground))]">
           Location
         </label>
         <Input

@@ -2,153 +2,189 @@ import Link from "next/link";
 import type { Route } from "next";
 
 import { requireUser } from "@/lib/auth/user";
-import { getCreditBalance } from "@/lib/db/credits";
+import { getCreditBalance, getCreditHistoryPage } from "@/lib/db/credits";
 import { getRecruitsTree, getUserById } from "@/lib/db/users";
 import { getReferralCodesForUser } from "@/lib/db/referral-codes";
 import { getInvitationsForSponsor } from "@/lib/db/invitations";
-import { Button } from "@/components/ui/button";
+import { ProfileSidebarCard } from "@/components/profile/profile-sidebar-card";
 
 export const metadata = {
   title: "Dashboard",
 };
 
-export default async function DashboardPage() {
-  const user = await requireUser();
+const PAGE_SIZE = 10;
 
-  const [creditBalance, recruits, referralCodes, invitations, userWithSponsor] = await Promise.all([
-    getCreditBalance(user.id),
-    getRecruitsTree(user.id),
-    getReferralCodesForUser(user.id),
-    getInvitationsForSponsor(user.id),
-    getUserById(user.id),
-  ]);
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>;
+}) {
+  const user = await requireUser();
+  const sp = await searchParams;
+  const page = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);
+
+  const [creditBalance, recruits, referralCodes, invitations, userWithSponsor, historyData] =
+    await Promise.all([
+      getCreditBalance(user.id),
+      getRecruitsTree(user.id),
+      getReferralCodesForUser(user.id),
+      getInvitationsForSponsor(user.id),
+      getUserById(user.id),
+      getCreditHistoryPage(user.id, page, PAGE_SIZE),
+    ]);
 
   const sponsor = userWithSponsor?.sponsor ?? null;
-  const sponsorName = sponsor
-    ? (sponsor.preferredDisplayName ?? sponsor.name ?? sponsor.email)
+  const sponsorInfo = sponsor
+    ? { id: sponsor.id, name: sponsor.preferredDisplayName ?? sponsor.name ?? sponsor.email }
     : null;
 
   const pendingInvitations = invitations.filter((i) => i.status === "PENDING");
+  const totalPages = Math.max(1, Math.ceil(historyData.total / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
 
   return (
-    <div className="grid gap-8">
-      <section className="grid gap-4 rounded-[2.5rem] bg-[linear-gradient(135deg,rgba(255,255,255,0.94),rgba(255,244,238,0.96))] p-8 shadow-[0_24px_120px_rgba(15,23,42,0.08)]">
-        <p className="text-sm font-medium uppercase tracking-[0.3em] text-black/40">
-          Dashboard
-        </p>
-        <div className="space-y-3">
-          <h1 className="max-w-2xl text-4xl font-semibold tracking-tight text-[var(--color-foreground)] sm:text-5xl">
-            Welcome back, {user.preferredDisplayName ?? user.name ?? "there"}.
-          </h1>
-          {sponsor ? (
-            <p className="text-base leading-8 text-black/65">
-              You are sponsored by{" "}
-              <Link
-                href={`/users/${sponsor.id}` as Route}
-                className="font-medium text-[var(--color-accent)] hover:underline"
-              >
-                {sponsorName}
-              </Link>
-              . Manage your referrals, invitations, and credits below.
-            </p>
-          ) : (
-            <div className="flex items-center gap-3">
-              <p className="text-base leading-8 text-black/65">
-                You do not have a sponsor yet.
-              </p>
-              <Link href="/sponsor">
-                <Button variant="secondary">Assign sponsor</Button>
-              </Link>
-            </div>
-          )}
-        </div>
-      </section>
-
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <article className="rounded-[2rem] border border-black/10 bg-white p-6 shadow-sm">
-          <p className="text-xs uppercase tracking-[0.24em] text-black/40">Credit balance</p>
-          <p className="mt-3 text-4xl font-semibold text-[var(--color-sage)]">{creditBalance}</p>
-          <Link href="/credits" className="mt-3 inline-block text-sm font-medium text-[var(--color-accent)] hover:underline">
-            View history →
-          </Link>
-        </article>
-        <article className="rounded-[2rem] border border-black/10 bg-white p-6 shadow-sm">
-          <p className="text-xs uppercase tracking-[0.24em] text-black/40">Direct recruits</p>
-          <p className="mt-3 text-4xl font-semibold text-[var(--color-foreground)]">{recruits.length}</p>
-          <Link href="/recruits" className="mt-3 inline-block text-sm font-medium text-[var(--color-accent)] hover:underline">
-            View hierarchy →
-          </Link>
-        </article>
-        <article className="rounded-[2rem] border border-black/10 bg-white p-6 shadow-sm">
-          <p className="text-xs uppercase tracking-[0.24em] text-black/40">Referral codes</p>
-          <p className="mt-3 text-4xl font-semibold text-[var(--color-foreground)]">{referralCodes.length}</p>
-          <Link href="/referrals" className="mt-3 inline-block text-sm font-medium text-[var(--color-accent)] hover:underline">
-            Manage →
-          </Link>
-        </article>
-        <article className="rounded-[2rem] border border-black/10 bg-white p-6 shadow-sm">
-          <p className="text-xs uppercase tracking-[0.24em] text-black/40">Pending invitations</p>
-          <p className="mt-3 text-4xl font-semibold text-[var(--color-accent)]">{pendingInvitations.length}</p>
-          <Link href="/invitations" className="mt-3 inline-block text-sm font-medium text-[var(--color-accent)] hover:underline">
-            Manage →
-          </Link>
-        </article>
+    <div className="grid gap-6">
+      <div>
+        <p className="text-xs font-medium uppercase tracking-[0.3em] text-[hsl(var(--muted-foreground))]">Dashboard</p>
+        <h1 className="mt-1 text-3xl font-semibold tracking-tight text-[hsl(var(--foreground))]">
+          Welcome back, {user.preferredDisplayName ?? user.name ?? "there"}.
+        </h1>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-[2rem] border border-black/10 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-[var(--color-foreground)]">Profile</h2>
-          <dl className="mt-4 space-y-3 text-sm">
-            <div className="flex justify-between">
-              <dt className="text-black/50">Name</dt>
-              <dd className="font-medium">{user.name}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-black/50">Email</dt>
-              <dd className="font-medium">{user.email}</dd>
-            </div>
-            {user.preferredDisplayName && (
-              <div className="flex justify-between">
-                <dt className="text-black/50">Display name</dt>
-                <dd className="font-medium">{user.preferredDisplayName}</dd>
-              </div>
-            )}
-            {user.bio && (
-              <div className="flex justify-between">
-                <dt className="text-black/50">Bio</dt>
-                <dd className="max-w-xs text-right font-medium">{user.bio}</dd>
-              </div>
-            )}
-            {user.location && (
-              <div className="flex justify-between">
-                <dt className="text-black/50">Location</dt>
-                <dd className="font-medium">{user.location}</dd>
-              </div>
-            )}
-          </dl>
-          <Link href="/profile" className="mt-4 inline-block text-sm font-medium text-[var(--color-accent)] hover:underline">
-            Edit profile →
-          </Link>
-        </section>
+      <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
+        {/* LEFT: profile + stats card */}
+        <div className="lg:self-start">
+          <ProfileSidebarCard
+            id={user.id}
+            displayName={user.preferredDisplayName ?? user.name ?? user.email}
+            role={user.role}
+            status={user.status}
+            bio={user.bio}
+            location={user.location}
+            joinedAt={user.joinedAt}
+            sponsor={sponsorInfo}
+            recruitCount={recruits.length}
+            balance={creditBalance}
+            isOwnProfile
+            extraStats={[
+              { label: "Referral codes", value: referralCodes.length, href: "/referrals" },
+              {
+                label: "Pending invitations",
+                value: pendingInvitations.length,
+                href: "/invitations",
+                accent: pendingInvitations.length > 0,
+              },
+            ]}
+          />
+        </div>
 
-        {recruits.length > 0 && (
-          <section className="rounded-[2rem] border border-black/10 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-[var(--color-foreground)]">Recent recruits</h2>
-            <ul className="mt-4 space-y-3">
-              {recruits.slice(0, 5).map((recruit) => (
-                <li key={recruit.id} className="flex items-center justify-between text-sm">
-                  <span className="font-medium">{recruit.name ?? recruit.email}</span>
-                  <span className="rounded-full bg-black/5 px-2 py-1 text-xs text-black/55">
-                    {recruit._count.recruits} recruit{recruit._count.recruits === 1 ? "" : "s"}
+        {/* RIGHT: credit history */}
+        <div className="flex flex-col gap-4">
+          <h2 className="text-lg font-semibold tracking-tight text-[hsl(var(--foreground))]">
+            Credit history
+          </h2>
+
+          {historyData.total === 0 ? (
+            <div className="rounded-lg border border-dashed border-[hsl(var(--border))] bg-[hsl(var(--card))/0.7] p-10 text-center text-sm text-[hsl(var(--muted-foreground))]">
+              No credit transactions yet.
+            </div>
+          ) : (
+            <>
+              <div className="overflow-hidden rounded-lg border border-[hsl(var(--border))] card-gradient shadow-sm">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-[hsl(var(--border))] bg-[hsl(var(--muted))/0.3]">
+                      <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-widest text-[hsl(var(--muted-foreground))]">
+                        Date
+                      </th>
+                      <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-widest text-[hsl(var(--muted-foreground))]">
+                        Description
+                      </th>
+                      <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-widest text-[hsl(var(--muted-foreground))]">
+                        By
+                      </th>
+                      <th className="px-5 py-3 text-right text-xs font-medium uppercase tracking-widest text-[hsl(var(--muted-foreground))]">
+                        Amount
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[hsl(var(--border))]">
+                    {historyData.transactions.map((tx) => (
+                      <tr key={tx.id} className="hover:bg-[hsl(var(--muted))/0.3]">
+                        <td className="whitespace-nowrap px-5 py-3.5 text-[hsl(var(--muted-foreground))]">
+                          {tx.createdAt.toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </td>
+                        <td className="px-5 py-3.5 text-[hsl(var(--foreground))]">
+                          {tx.description}
+                        </td>
+                        <td className="px-5 py-3.5 text-[hsl(var(--muted-foreground))]">
+                          {tx.nominator ? (
+                            <Link
+                              href={`/users/${tx.nominator.id}` as Route}
+                              className="hover:text-[hsl(var(--primary))] hover:underline"
+                            >
+                              {tx.nominator.name ?? "—"}
+                            </Link>
+                          ) : (
+                            "—"
+                          )}
+                        </td>
+                        <td
+                          className={`whitespace-nowrap px-5 py-3.5 text-right font-mono font-semibold tabular-nums ${
+                            tx.amount >= 0 ? "text-emerald-400" : "text-red-400"
+                          }`}
+                        >
+                          {tx.amount >= 0 ? "+" : ""}
+                          {tx.amount.toLocaleString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-[hsl(var(--muted-foreground))]">
+                    Page {safePage} of {totalPages} &middot;{" "}
+                    {historyData.total} transaction
+                    {historyData.total === 1 ? "" : "s"}
                   </span>
-                </li>
-              ))}
-            </ul>
-            <Link href="/recruits" className="mt-4 inline-block text-sm font-medium text-[var(--color-accent)] hover:underline">
-              View all →
-            </Link>
-          </section>
-        )}
+                  <div className="flex gap-2">
+                    {safePage > 1 ? (
+                      <Link
+                        href={`/dashboard?page=${safePage - 1}` as Route}
+                        className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-4 py-1.5 font-medium shadow-sm hover:border-[hsl(var(--border))]"
+                      >
+                        ← Previous
+                      </Link>
+                    ) : (
+                      <span className="rounded-lg border border-[hsl(var(--border))/0.5] px-4 py-1.5 text-[hsl(var(--muted-foreground))/0.5]">
+                        ← Previous
+                      </span>
+                    )}
+                    {safePage < totalPages ? (
+                      <Link
+                        href={`/dashboard?page=${safePage + 1}` as Route}
+                        className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-4 py-1.5 font-medium shadow-sm hover:border-[hsl(var(--border))]"
+                      >
+                        Next →
+                      </Link>
+                    ) : (
+                      <span className="rounded-lg border border-[hsl(var(--border))/0.5] px-4 py-1.5 text-[hsl(var(--muted-foreground))/0.5]">
+                        Next →
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -30,19 +30,19 @@ export function AdminCreditForm({ users }: AdminCreditFormProps) {
     <form
       ref={formRef}
       action={formAction}
-      className="space-y-4 rounded-[2rem] border border-black/10 bg-white p-6 shadow-sm"
+      className="space-y-4 rounded-lg border border-[hsl(var(--border))] card-gradient p-6 shadow-sm"
     >
-      <h2 className="text-lg font-semibold text-[var(--color-foreground)]">
+      <h2 className="text-lg font-semibold text-[hsl(var(--foreground))]">
         Create credit transaction
       </h2>
 
       <div className="space-y-2">
-        <label htmlFor="admin-credit-userId" className="text-sm font-medium text-black/70">User</label>
+        <label htmlFor="admin-credit-userId" className="text-sm font-medium text-[hsl(var(--foreground))]">User</label>
         <select
           id="admin-credit-userId"
           name="userId"
           required
-          className="h-11 w-full rounded-2xl border border-black/10 bg-white px-4 text-sm"
+          className="h-11 w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-4 text-sm"
         >
           <option value="">Select user...</option>
           {users.map((u) => (
@@ -55,7 +55,7 @@ export function AdminCreditForm({ users }: AdminCreditFormProps) {
       </div>
 
       <div className="space-y-2">
-        <label htmlFor="admin-credit-amount" className="text-sm font-medium text-black/70">
+        <label htmlFor="admin-credit-amount" className="text-sm font-medium text-[hsl(var(--foreground))]">
           Amount (positive = award, negative = deduction)
         </label>
         <Input id="admin-credit-amount" name="amount" type="number" required />
@@ -63,7 +63,7 @@ export function AdminCreditForm({ users }: AdminCreditFormProps) {
       </div>
 
       <div className="space-y-2">
-        <label htmlFor="admin-credit-description" className="text-sm font-medium text-black/70">
+        <label htmlFor="admin-credit-description" className="text-sm font-medium text-[hsl(var(--foreground))]">
           Description
         </label>
         <Input id="admin-credit-description" name="description" placeholder="Reason for credit" required />

@@ -8,12 +8,12 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const variants: Record<NonNullable<ButtonProps["variant"]>, string> = {
   primary:
-    "bg-[var(--color-accent)] text-white shadow-[0_10px_30px_rgba(212,86,39,0.28)] hover:bg-[var(--color-accent-strong)]",
+    "btn-gradient text-white",
   secondary:
-    "bg-white text-[var(--color-foreground)] ring-1 ring-black/10 hover:bg-[var(--color-surface)]",
+    "bg-[hsl(var(--muted))] text-[hsl(var(--foreground))] ring-1 ring-[hsl(var(--border))] hover:bg-[hsl(var(--card-hover))]",
   ghost:
-    "bg-transparent text-[var(--color-foreground)] hover:bg-black/5",
-  danger: "bg-[var(--color-danger)] text-white hover:opacity-90",
+    "bg-transparent text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))]",
+  danger: "bg-[hsl(var(--destructive))] text-white hover:opacity-90",
 };
 
 export function Button({

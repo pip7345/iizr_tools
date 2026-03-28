@@ -10,13 +10,13 @@ export default function GlobalError({
 }) {
   return (
     <html lang="en">
-      <body className="flex min-h-screen items-center justify-center bg-[var(--color-background)] px-6 py-16">
-        <div className="max-w-xl rounded-[2rem] border border-black/10 bg-white p-10 shadow-[0_20px_100px_rgba(15,23,42,0.08)]">
-          <p className="text-xs uppercase tracking-[0.26em] text-black/40">Unhandled error</p>
-          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-[var(--color-foreground)]">
+      <body className="flex min-h-screen items-center justify-center bg-[hsl(var(--background))] px-6 py-16">
+        <div className="max-w-xl rounded-lg border border-[hsl(var(--border))] card-gradient p-10 shadow-lg">
+          <p className="text-xs uppercase tracking-[0.26em] text-[hsl(var(--muted-foreground))]">Unhandled error</p>
+          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-[hsl(var(--foreground))]">
             The application hit an unexpected failure.
           </h1>
-          <p className="mt-4 text-base leading-8 text-black/65">
+          <p className="mt-4 text-base leading-8 text-[hsl(var(--muted-foreground))]">
             This global error boundary prevents a blank screen and gives users a recovery path.
           </p>
           <Button className="mt-8" onClick={() => reset()}>

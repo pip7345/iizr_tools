@@ -28,21 +28,21 @@ export function SpendCreditsForm({ balance }: SpendCreditsFormProps) {
     <form
       ref={formRef}
       action={formAction}
-      className="space-y-4 rounded-[2rem] border border-black/10 bg-white p-6 shadow-sm"
+      className="space-y-4 rounded-lg border border-[hsl(var(--border))] card-gradient p-6 shadow-sm"
     >
-      <h2 className="text-lg font-semibold text-[var(--color-foreground)]">Spend credits</h2>
-      <p className="text-sm text-black/55">
+      <h2 className="text-lg font-semibold text-[hsl(var(--foreground))]">Spend credits</h2>
+      <p className="text-sm text-[hsl(var(--muted-foreground))]">
         Available: <strong>{balance}</strong> credits
       </p>
 
       <div className="space-y-2">
-        <label htmlFor="spend-amount" className="text-sm font-medium text-black/70">Amount</label>
+        <label htmlFor="spend-amount" className="text-sm font-medium text-[hsl(var(--foreground))]">Amount</label>
         <Input id="spend-amount" name="amount" type="number" min="1" max={balance} required />
         <FormMessage message={state.errors?.amount?.[0]} tone="error" />
       </div>
 
       <div className="space-y-2">
-        <label htmlFor="spend-description" className="text-sm font-medium text-black/70">Description</label>
+        <label htmlFor="spend-description" className="text-sm font-medium text-[hsl(var(--foreground))]">Description</label>
         <Input id="spend-description" name="description" placeholder="What are you spending on?" required />
         <FormMessage message={state.errors?.description?.[0]} tone="error" />
       </div>

@@ -17,12 +17,12 @@ export default async function ReferralsPage() {
 
   return (
     <div className="grid gap-8">
-      <section className="grid gap-4 rounded-[2.5rem] bg-[linear-gradient(135deg,rgba(255,255,255,0.94),rgba(255,244,238,0.96))] p-8 shadow-[0_24px_120px_rgba(15,23,42,0.08)]">
-        <p className="text-sm font-medium uppercase tracking-[0.3em] text-black/40">
+      <section className="grid gap-4 rounded-lg card-gradient p-8 shadow-lg">
+        <p className="text-sm font-medium uppercase tracking-[0.3em] text-[hsl(var(--muted-foreground))]">
           Referrals
         </p>
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <h1 className="text-4xl font-semibold tracking-tight text-[var(--color-foreground)]">
+          <h1 className="text-4xl font-semibold tracking-tight text-[hsl(var(--foreground))]">
             Your referral codes
           </h1>
           <form action={createReferralCodeAction}>
@@ -32,7 +32,7 @@ export default async function ReferralsPage() {
       </section>
 
       {codes.length === 0 ? (
-        <div className="rounded-[2rem] border border-dashed border-black/15 bg-white/70 p-8 text-center text-sm text-black/60">
+        <div className="rounded-lg border border-dashed border-[hsl(var(--border))] bg-[hsl(var(--card))/0.7] p-8 text-center text-sm text-[hsl(var(--muted-foreground))]">
           No referral codes yet. Generate one to start inviting people.
         </div>
       ) : (
@@ -45,24 +45,24 @@ export default async function ReferralsPage() {
             return (
               <article
                 key={code.id}
-                className="rounded-[2rem] border border-black/10 bg-white p-6 shadow-sm"
+                className="rounded-lg border border-[hsl(var(--border))] card-gradient p-6 shadow-sm"
               >
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="space-y-2">
                     <div className="flex items-center gap-3">
-                      <code className="rounded-xl bg-black/5 px-3 py-1 font-mono text-sm font-medium">
+                      <code className="rounded-lg bg-[hsl(var(--muted))/0.5] px-3 py-1 font-mono text-sm font-medium">
                         {code.code}
                       </code>
                       {isExpired && (
-                        <span className="rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-700">
+                        <span className="rounded-full bg-red-500/20 px-2 py-1 text-xs font-medium text-red-400">
                           Expired
                         </span>
                       )}
                     </div>
-                    <p className="break-all text-sm text-black/55">
+                    <p className="break-all text-sm text-[hsl(var(--muted-foreground))]">
                       {link}
                     </p>
-                    <p className="text-xs text-black/40">
+                    <p className="text-xs text-[hsl(var(--muted-foreground))]">
                       Created {formatDate(code.createdAt)} · Expires {formatDate(code.expiresAt)}
                     </p>
                   </div>

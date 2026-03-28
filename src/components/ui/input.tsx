@@ -6,7 +6,7 @@ export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElem
   return (
     <input
       className={cn(
-        "h-11 w-full rounded-2xl border border-black/10 bg-white px-4 text-sm text-[var(--color-foreground)] outline-none transition placeholder:text-black/35 focus:border-[var(--color-accent)] focus:ring-4 focus:ring-[color:color-mix(in_oklab,var(--color-accent)_20%,white)]",
+        "h-11 w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-4 text-sm text-[hsl(var(--foreground))] outline-none transition placeholder:text-[hsl(var(--muted-foreground))] focus:border-[hsl(var(--primary))] focus:ring-4 focus:ring-[hsl(var(--primary))/0.2]",
         className,
       )}
       {...props}

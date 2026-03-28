@@ -32,9 +32,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${spaceGrotesk.variable} ${plexMono.variable} h-full antialiased`}
+      className={`dark ${spaceGrotesk.variable} ${plexMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-[var(--color-background)] font-sans text-[var(--color-foreground)]">
+      <body className="min-h-full bg-[hsl(var(--background))] font-sans text-[hsl(var(--foreground))]">
         <ClerkProvider>
           {children}
         </ClerkProvider>
