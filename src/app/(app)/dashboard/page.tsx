@@ -2,9 +2,10 @@ import Link from "next/link";
 import type { Route } from "next";
 
 import { requireUser } from "@/lib/auth/user";
-import { getCreditBalance, getCreditHistoryPage } from "@/lib/db/credits";
-import { getRecruitsTree, getUserById } from "@/lib/db/users";
+import { getCreditBalance, getCreditBalances, getCreditHistoryPage } from "@/lib/db/credits";
+import { getRecruitsTree, getRootUsers, getUserById } from "@/lib/db/users";
 import { getReferralCodesForUser } from "@/lib/db/referral-codes";
+import { RecruitTree } from "@/components/hierarchy/recruit-tree";
 import { getInvitationsForSponsor } from "@/lib/db/invitations";
 import { ProfileSidebarCard } from "@/components/profile/profile-sidebar-card";
 
@@ -22,8 +23,10 @@ export default async function DashboardPage({
   const user = await requireUser();
   const sp = await searchParams;
   const page = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);
+  const isAdmin = user.role === "ADMIN";
+  const showAllUsers = isAdmin && sp.view === "all";
 
-  const [creditBalance, recruits, referralCodes, invitations, userWithSponsor, historyData] =
+  const [creditBalance, myRecruits, referralCodes, invitations, userWithSponsor, historyData] =
     await Promise.all([
       getCreditBalance(user.id),
       getRecruitsTree(user.id),
@@ -32,6 +35,10 @@ export default async function DashboardPage({
       getUserById(user.id),
       getCreditHistoryPage(user.id, page, PAGE_SIZE),
     ]);
+
+  const treeSource = showAllUsers ? await getRootUsers() : myRecruits;
+  const treeBalances = await getCreditBalances(treeSource.map((r) => r.id));
+  const treeRecruits = treeSource.map((r) => ({ ...r, creditBalance: treeBalances[r.id] ?? 0 }));
 
   const sponsor = userWithSponsor?.sponsor ?? null;
   const sponsorInfo = sponsor
@@ -63,7 +70,7 @@ export default async function DashboardPage({
             location={user.location}
             joinedAt={user.joinedAt}
             sponsor={sponsorInfo}
-            recruitCount={recruits.length}
+            recruitCount={myRecruits.length}
             balance={creditBalance}
             isOwnProfile
             extraStats={[
@@ -184,6 +191,50 @@ export default async function DashboardPage({
               )}
             </>
           )}
+          {/* Recruit hierarchy */}
+          <div className="flex flex-col gap-4 pt-2">
+            <div className="flex items-center justify-between gap-4">
+              <h2 className="text-lg font-semibold tracking-tight text-[hsl(var(--foreground))]">
+                Recruit hierarchy
+              </h2>
+              {isAdmin && (
+                <div className="flex items-center gap-1 rounded-lg border border-[hsl(var(--border))] p-1 text-xs">
+                  <Link
+                    href={"/dashboard" as Route}
+                    className={`rounded-md px-3 py-1 font-medium transition ${
+                      !showAllUsers
+                        ? "bg-[hsl(var(--primary))] text-white"
+                        : "text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]"
+                    }`}
+                  >
+                    My recruits
+                  </Link>
+                  <Link
+                    href={"/dashboard?view=all" as Route}
+                    className={`rounded-md px-3 py-1 font-medium transition ${
+                      showAllUsers
+                        ? "bg-[hsl(var(--primary))] text-white"
+                        : "text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]"
+                    }`}
+                  >
+                    All users
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {treeRecruits.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-[hsl(var(--border))] bg-[hsl(var(--card))/0.7] p-8 text-center text-sm text-[hsl(var(--muted-foreground))]">
+                {showAllUsers
+                  ? "No users in the system."
+                  : "No recruits yet. Share your referral link to start building your network."}
+              </div>
+            ) : (
+              <div className="rounded-lg border border-[hsl(var(--border))] card-gradient p-6 shadow-sm">
+                <RecruitTree recruits={treeRecruits} viewerCanNominate />
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

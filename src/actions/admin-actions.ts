@@ -9,6 +9,7 @@ import { updateUserRole, updateUserSponsor } from "@/lib/db/users";
 import {
   createAdminCreditTransaction,
   deleteAdminCreditTransaction,
+  updateAdminCreditTransaction,
   approveNomination,
   approveNominationsBulk,
   rejectNomination,
@@ -19,7 +20,7 @@ import {
   startImpersonation,
   endImpersonation,
 } from "@/lib/db/impersonation";
-import { adminCreditSchema, rejectionReasonSchema } from "@/lib/validation/schemas";
+import { adminCreditSchema, adminUpdateCreditSchema, rejectionReasonSchema } from "@/lib/validation/schemas";
 
 import type { ActionState } from "@/actions/user-actions";
 
@@ -148,10 +149,47 @@ export async function adminCreateCreditAction(
   }
 
   revalidatePath("/admin/credits");
+  revalidatePath(`/users/${parsed.data.userId}`);
   return { status: "success", message: "Credit transaction created." };
 }
 
-export async function adminDeleteCreditAction(transactionId: string): Promise<ActionState> {
+export async function adminUpdateCreditAction(
+  _previousState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireAdmin();
+
+  const parsed = adminUpdateCreditSchema.safeParse({
+    transactionId: formData.get("transactionId"),
+    amount: formData.get("amount"),
+    description: formData.get("description"),
+  });
+
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: "Please fix the validation errors.",
+      errors: parsed.error.flatten().fieldErrors,
+    };
+  }
+
+  try {
+    await updateAdminCreditTransaction(
+      parsed.data.transactionId,
+      parsed.data.amount,
+      parsed.data.description,
+    );
+  } catch {
+    return { status: "error", message: "Could not update credit." };
+  }
+
+  const userId = formData.get("userId") as string | null;
+  revalidatePath("/admin/credits");
+  if (userId) revalidatePath(`/users/${userId}`);
+  return { status: "success", message: "Credit transaction updated." };
+}
+
+export async function adminDeleteCreditAction(transactionId: string, userId?: string): Promise<ActionState> {
   await requireAdmin();
 
   try {
@@ -161,6 +199,7 @@ export async function adminDeleteCreditAction(transactionId: string): Promise<Ac
   }
 
   revalidatePath("/admin/credits");
+  if (userId) revalidatePath(`/users/${userId}`);
   return { status: "success", message: "Credit transaction deleted." };
 }
 

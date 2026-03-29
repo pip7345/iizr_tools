@@ -28,6 +28,12 @@ export const adminCreditSchema = z.object({
   description: z.string().min(1, "Description is required").max(500).trim(),
 });
 
+export const adminUpdateCreditSchema = z.object({
+  transactionId: z.string().min(1, "Transaction is required"),
+  amount: z.coerce.number().int().refine((n) => n !== 0, "Amount cannot be zero"),
+  description: z.string().min(1, "Description is required").max(500).trim(),
+});
+
 export const rejectionReasonSchema = z.object({
   reason: z.string().min(1, "Rejection reason is required").max(500).trim(),
 });

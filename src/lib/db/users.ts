@@ -176,11 +176,59 @@ export async function getUserPublicProfile(id: string) {
 }
 
 export async function getUserStats() {
-  const [totalUsers, activeUsers, adminUsers] = await prisma.$transaction([
+  const [totalUsers, activeUsers, adminUsers, referredUsers, creditAggregate] = await Promise.all([
     prisma.user.count(),
     prisma.user.count({ where: { status: UserStatus.ACTIVE } }),
     prisma.user.count({ where: { role: UserRole.ADMIN } }),
+    prisma.user.count({ where: { sponsorId: { not: null } } }),
+    prisma.creditTransaction.aggregate({ _sum: { amount: true }, where: { amount: { gt: 0 } } }),
   ]);
 
-  return { totalUsers, activeUsers, adminUsers };
+  return {
+    totalUsers,
+    activeUsers,
+    adminUsers,
+    referredUsers,
+    totalCreditsIssued: creditAggregate._sum.amount ?? 0,
+  };
+}
+
+export async function getLeaderboardPage(page: number, pageSize: number) {
+  type LeaderboardRow = {
+    id: string;
+    name: string | null;
+    preferredDisplayName: string | null;
+    credits: bigint;
+    referrals: bigint;
+  };
+
+  const offset = (page - 1) * pageSize;
+
+  const [rows, total] = await Promise.all([
+    prisma.$queryRaw<LeaderboardRow[]>`
+      SELECT
+        u.id,
+        u.name,
+        u."preferredDisplayName",
+        COALESCE(SUM(ct.amount), 0)::bigint AS credits,
+        COUNT(DISTINCT r.id)::bigint AS referrals
+      FROM "User" u
+      LEFT JOIN "CreditTransaction" ct ON ct."userId" = u.id
+      LEFT JOIN "User" r ON r."sponsorId" = u.id
+      GROUP BY u.id, u.name, u."preferredDisplayName"
+      ORDER BY credits DESC, referrals DESC
+      LIMIT ${pageSize} OFFSET ${offset}
+    `,
+    prisma.user.count(),
+  ]);
+
+  return {
+    entries: rows.map((r) => ({
+      id: r.id,
+      name: r.preferredDisplayName ?? r.name ?? "Unknown",
+      credits: Number(r.credits),
+      referrals: Number(r.referrals),
+    })),
+    total,
+  };
 }

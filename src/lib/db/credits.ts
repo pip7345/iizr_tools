@@ -54,6 +54,8 @@ export async function getCreditHistoryPage(
     include: {
       nominator: { select: { id: true, name: true } },
       approver: { select: { id: true, name: true } },
+      nomination: { select: { id: true } },
+      invitationCreditGrant: { select: { id: true } },
     },
     orderBy: { createdAt: "desc" },
     skip: (page - 1) * pageSize,
@@ -83,6 +85,17 @@ export async function createAdminCreditTransaction(
 export async function deleteAdminCreditTransaction(transactionId: string) {
   return prisma.creditTransaction.delete({
     where: { id: transactionId },
+  });
+}
+
+export async function updateAdminCreditTransaction(
+  transactionId: string,
+  amount: number,
+  description: string,
+) {
+  return prisma.creditTransaction.update({
+    where: { id: transactionId },
+    data: { amount, description },
   });
 }
 
