@@ -210,12 +210,9 @@ export async function getLeaderboardPage(page: number, pageSize: number) {
         u.id,
         u.name,
         u."preferredDisplayName",
-        COALESCE(SUM(ct.amount), 0)::bigint AS credits,
-        COUNT(DISTINCT r.id)::bigint AS referrals
+        COALESCE((SELECT SUM(ct.amount) FROM "CreditTransaction" ct WHERE ct."userId" = u.id), 0)::bigint AS credits,
+        (SELECT COUNT(*) FROM "User" r WHERE r."sponsorId" = u.id)::bigint AS referrals
       FROM "User" u
-      LEFT JOIN "CreditTransaction" ct ON ct."userId" = u.id
-      LEFT JOIN "User" r ON r."sponsorId" = u.id
-      GROUP BY u.id, u.name, u."preferredDisplayName"
       ORDER BY credits DESC, referrals DESC
       LIMIT ${pageSize} OFFSET ${offset}
     `,
