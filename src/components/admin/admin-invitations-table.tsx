@@ -1,6 +1,8 @@
 "use client";
 
 import { startTransition, useActionState, useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import type { Route } from "next";
 
 import {
   adminCreateInvitationAction,
@@ -23,6 +25,7 @@ type Invitation = {
   referralCode: { code: string };
   sponsor: { id: string; name: string | null; email: string | null } | null;
   userExists: boolean;
+  pendingUserId: string | null;
 };
 
 const INIT: ActionState = { status: "idle", message: "" };
@@ -243,7 +246,16 @@ export function AdminInvitationsTable({
               return (
                 <tr key={inv.id} className="hover:bg-[hsl(var(--muted)/0.2)]">
                   <td className="px-3 py-2 font-medium text-[hsl(var(--foreground))]">
-                    {inv.name}
+                    {inv.pendingUserId ? (
+                      <Link
+                        href={`/users/${inv.pendingUserId}` as Route}
+                        className="hover:text-[hsl(var(--primary))] hover:underline"
+                      >
+                        {inv.name}
+                      </Link>
+                    ) : (
+                      inv.name
+                    )}
                   </td>
                   <td className="px-3 py-2 text-[hsl(var(--muted-foreground))]">
                     {inv.email ?? <span className="opacity-40">—</span>}

@@ -23,6 +23,7 @@ export default async function AdminInvitationsPage() {
     referralCode: inv.referralCode,
     sponsor: inv.sponsor ?? null,
     userExists: inv.pendingUserId !== null,
+    pendingUserId: inv.pendingUserId ?? null,
   }));
 
   const sponsors = allUsers.map((u) => ({
