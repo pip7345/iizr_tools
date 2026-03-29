@@ -6,7 +6,150 @@ datasource db {
   provider = "postgresql"
 }
 
-// ─── Enums ────────────────────────────────────────────────
+model User {
+  id                           String                  @id @default(cuid())
+  clerkId                      String                  @unique
+  email                        String                  @unique
+  name                         String?
+  preferredDisplayName         String?
+  bio                          String?
+  location                     String?
+  role                         UserRole                @default(USER)
+  status                       UserStatus              @default(ACTIVE)
+  joinedAt                     DateTime                @default(now())
+  createdAt                    DateTime                @default(now())
+  updatedAt                    DateTime                @updatedAt
+  sponsorId                    String?
+  creditNominationsApproved    CreditNomination[]      @relation("NominationApprover")
+  creditNominationsGiven       CreditNomination[]      @relation("NominationNominator")
+  creditNominationsReceived    CreditNomination[]      @relation("NominationUser")
+  approvedCreditTransactions   CreditTransaction[]     @relation("CreditTransactionApprover")
+  nominatedCreditTransactions  CreditTransaction[]     @relation("CreditTransactionNominator")
+  creditTransactions           CreditTransaction[]     @relation("CreditTransactionUser")
+  impersonationSessionsAsAdmin ImpersonationSession[]  @relation("ImpersonationAdmin")
+  impersonationSessionsAsUser  ImpersonationSession[]  @relation("ImpersonationUser")
+  claimedInvitations           Invitation[]            @relation("InvitationClaimedBy")
+  createdInvitations           Invitation[]            @relation("InvitationSponsor")
+  invitationCreditApproved     InvitationCreditGrant[] @relation("InvCreditApprover")
+  invitationCreditNominated    InvitationCreditGrant[] @relation("InvCreditNominator")
+  referralCodes                ReferralCode[]
+  sponsor                      User?                   @relation("SponsorRecruits", fields: [sponsorId], references: [id])
+  recruits                     User[]                  @relation("SponsorRecruits")
+
+  @@index([sponsorId])
+  @@index([role])
+  @@index([status])
+}
+
+model ReferralCode {
+  id          String       @id @default(cuid())
+  code        String       @unique
+  userId      String
+  expiresAt   DateTime
+  createdAt   DateTime     @default(now())
+  invitations Invitation[]
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([code])
+}
+
+model Invitation {
+  id              String                  @id @default(cuid())
+  name            String
+  email           String
+  sponsorId       String
+  referralCodeId  String
+  status          InvitationStatus        @default(PENDING)
+  claimedByUserId String?
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  claimedByUser   User?                   @relation("InvitationClaimedBy", fields: [claimedByUserId], references: [id])
+  referralCode    ReferralCode            @relation(fields: [referralCodeId], references: [id])
+  sponsor         User                    @relation("InvitationSponsor", fields: [sponsorId], references: [id])
+  creditGrants    InvitationCreditGrant[]
+
+  @@index([sponsorId])
+  @@index([email])
+  @@index([status])
+}
+
+model CreditTransaction {
+  id                    String                 @id @default(cuid())
+  userId                String
+  amount                Int
+  description           String
+  nominatorId           String?
+  approverId            String?
+  createdAt             DateTime               @default(now())
+  nomination            CreditNomination?      @relation("NominationTransaction")
+  approver              User?                  @relation("CreditTransactionApprover", fields: [approverId], references: [id])
+  nominator             User?                  @relation("CreditTransactionNominator", fields: [nominatorId], references: [id])
+  user                  User                   @relation("CreditTransactionUser", fields: [userId], references: [id])
+  invitationCreditGrant InvitationCreditGrant? @relation("InvCreditTransaction")
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model CreditNomination {
+  id                  String             @id @default(cuid())
+  userId              String
+  nominatorId         String
+  amount              Int
+  description         String
+  status              NominationStatus   @default(PENDING)
+  rejectionReason     String?
+  approverId          String?
+  creditTransactionId String?            @unique
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  approver            User?              @relation("NominationApprover", fields: [approverId], references: [id])
+  creditTransaction   CreditTransaction? @relation("NominationTransaction", fields: [creditTransactionId], references: [id])
+  nominator           User               @relation("NominationNominator", fields: [nominatorId], references: [id])
+  user                User               @relation("NominationUser", fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([nominatorId])
+  @@index([status])
+}
+
+model InvitationCreditGrant {
+  id                  String                 @id @default(cuid())
+  invitationId        String
+  amount              Int
+  description         String
+  nominatorId         String
+  status              InvitationCreditStatus @default(PENDING)
+  approverId          String?
+  rejectionReason     String?
+  creditTransactionId String?                @unique
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+  approver            User?                  @relation("InvCreditApprover", fields: [approverId], references: [id])
+  creditTransaction   CreditTransaction?     @relation("InvCreditTransaction", fields: [creditTransactionId], references: [id])
+  invitation          Invitation             @relation(fields: [invitationId], references: [id])
+  nominator           User                   @relation("InvCreditNominator", fields: [nominatorId], references: [id])
+
+  @@index([invitationId])
+  @@index([status])
+}
+
+model ImpersonationSession {
+  id                 String                     @id @default(cuid())
+  adminId            String
+  impersonatedUserId String
+  status             ImpersonationSessionStatus @default(ACTIVE)
+  ipAddress          String?
+  userAgent          String?
+  startedAt          DateTime                   @default(now())
+  endedAt            DateTime?
+  admin              User                       @relation("ImpersonationAdmin", fields: [adminId], references: [id])
+  impersonatedUser   User                       @relation("ImpersonationUser", fields: [impersonatedUserId], references: [id])
+
+  @@index([adminId])
+  @@index([status])
+}
 
 enum UserRole {
   USER
@@ -41,178 +184,4 @@ enum InvitationCreditStatus {
 enum ImpersonationSessionStatus {
   ACTIVE
   ENDED
-}
-
-// ─── User ─────────────────────────────────────────────────
-
-model User {
-  id                   String     @id @default(cuid())
-  clerkId              String     @unique
-  email                String     @unique
-  name                 String?
-  preferredDisplayName String?
-  bio                  String?
-  location             String?
-  role                 UserRole   @default(USER)
-  status               UserStatus @default(ACTIVE)
-  joinedAt             DateTime   @default(now())
-  createdAt            DateTime   @default(now())
-  updatedAt            DateTime   @updatedAt
-
-  // Self-referential sponsor relationship
-  sponsorId String?
-  sponsor   User?  @relation("SponsorRecruits", fields: [sponsorId], references: [id])
-  recruits  User[] @relation("SponsorRecruits")
-
-  // Referral codes owned by this user
-  referralCodes ReferralCode[]
-
-  // Invitations created by this user (as sponsor)
-  createdInvitations Invitation[] @relation("InvitationSponsor")
-  claimedInvitations Invitation[] @relation("InvitationClaimedBy")
-
-  // Credits
-  creditTransactions         CreditTransaction[] @relation("CreditTransactionUser")
-  nominatedCreditTransactions CreditTransaction[] @relation("CreditTransactionNominator")
-  approvedCreditTransactions  CreditTransaction[] @relation("CreditTransactionApprover")
-
-  creditNominationsReceived CreditNomination[] @relation("NominationUser")
-  creditNominationsGiven    CreditNomination[] @relation("NominationNominator")
-  creditNominationsApproved CreditNomination[] @relation("NominationApprover")
-
-  invitationCreditNominated InvitationCreditGrant[] @relation("InvCreditNominator")
-  invitationCreditApproved  InvitationCreditGrant[] @relation("InvCreditApprover")
-
-  // Impersonation
-  impersonationSessionsAsAdmin ImpersonationSession[] @relation("ImpersonationAdmin")
-  impersonationSessionsAsUser  ImpersonationSession[] @relation("ImpersonationUser")
-
-  @@index([sponsorId])
-  @@index([role])
-  @@index([status])
-}
-
-// ─── Referral Codes ───────────────────────────────────────
-
-model ReferralCode {
-  id        String   @id @default(cuid())
-  code      String   @unique
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-
-  invitations Invitation[]
-
-  @@index([userId])
-  @@index([code])
-}
-
-// ─── Invitations ──────────────────────────────────────────
-
-model Invitation {
-  id             String           @id @default(cuid())
-  name           String
-  email          String
-  sponsorId      String
-  sponsor        User             @relation("InvitationSponsor", fields: [sponsorId], references: [id])
-  referralCodeId String
-  referralCode   ReferralCode     @relation(fields: [referralCodeId], references: [id])
-  status         InvitationStatus @default(PENDING)
-  claimedByUserId String?
-  claimedByUser   User?           @relation("InvitationClaimedBy", fields: [claimedByUserId], references: [id])
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-
-  creditGrants InvitationCreditGrant[]
-
-  @@index([sponsorId])
-  @@index([email])
-  @@index([status])
-}
-
-// ─── Credit Transaction (ledger) ──────────────────────────
-
-model CreditTransaction {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation("CreditTransactionUser", fields: [userId], references: [id])
-  amount      Int
-  description String
-  nominatorId String?
-  nominator   User?    @relation("CreditTransactionNominator", fields: [nominatorId], references: [id])
-  approverId  String?
-  approver    User?    @relation("CreditTransactionApprover", fields: [approverId], references: [id])
-  createdAt   DateTime @default(now())
-
-  nomination            CreditNomination?      @relation("NominationTransaction")
-  invitationCreditGrant InvitationCreditGrant? @relation("InvCreditTransaction")
-
-  @@index([userId])
-  @@index([createdAt])
-}
-
-// ─── Credit Nomination ────────────────────────────────────
-
-model CreditNomination {
-  id                  String           @id @default(cuid())
-  userId              String
-  user                User             @relation("NominationUser", fields: [userId], references: [id])
-  nominatorId         String
-  nominator           User             @relation("NominationNominator", fields: [nominatorId], references: [id])
-  amount              Int
-  description         String
-  status              NominationStatus @default(PENDING)
-  rejectionReason     String?
-  approverId          String?
-  approver            User?            @relation("NominationApprover", fields: [approverId], references: [id])
-  creditTransactionId String?          @unique
-  creditTransaction   CreditTransaction? @relation("NominationTransaction", fields: [creditTransactionId], references: [id])
-  createdAt           DateTime         @default(now())
-  updatedAt           DateTime         @updatedAt
-
-  @@index([userId])
-  @@index([nominatorId])
-  @@index([status])
-}
-
-// ─── Invitation Credit Grant ──────────────────────────────
-
-model InvitationCreditGrant {
-  id                  String                 @id @default(cuid())
-  invitationId        String
-  invitation          Invitation             @relation(fields: [invitationId], references: [id])
-  amount              Int
-  description         String
-  nominatorId         String
-  nominator           User                   @relation("InvCreditNominator", fields: [nominatorId], references: [id])
-  status              InvitationCreditStatus @default(PENDING)
-  approverId          String?
-  approver            User?                  @relation("InvCreditApprover", fields: [approverId], references: [id])
-  rejectionReason     String?
-  creditTransactionId String?                @unique
-  creditTransaction   CreditTransaction?     @relation("InvCreditTransaction", fields: [creditTransactionId], references: [id])
-  createdAt           DateTime               @default(now())
-  updatedAt           DateTime               @updatedAt
-
-  @@index([invitationId])
-  @@index([status])
-}
-
-// ─── Impersonation Session ────────────────────────────────
-
-model ImpersonationSession {
-  id                 String                     @id @default(cuid())
-  adminId            String
-  admin              User                       @relation("ImpersonationAdmin", fields: [adminId], references: [id])
-  impersonatedUserId String
-  impersonatedUser   User                       @relation("ImpersonationUser", fields: [impersonatedUserId], references: [id])
-  status             ImpersonationSessionStatus @default(ACTIVE)
-  ipAddress          String?
-  userAgent          String?
-  startedAt          DateTime                   @default(now())
-  endedAt            DateTime?
-
-  @@index([adminId])
-  @@index([status])
 }

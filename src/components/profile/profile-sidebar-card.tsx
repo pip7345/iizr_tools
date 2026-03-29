@@ -104,7 +104,7 @@ export function ProfileSidebarCard({
           <dd className="text-sm font-medium">
             {isOwnProfile ? (
               <Link
-                href="/recruits"
+                href="/dashboard"
                 className="text-[hsl(var(--primary))] hover:underline"
               >
                 {recruitCount}
