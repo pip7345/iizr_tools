@@ -15,7 +15,7 @@ type Props = {
   id: string;
   displayName: string;
   role: "USER" | "ADMIN";
-  status: "ACTIVE" | "INACTIVE";
+  status: "ACTIVE" | "INACTIVE" | "PENDING_SIGNUP";
   bio?: string | null;
   location?: string | null;
   joinedAt: Date;

@@ -3,8 +3,9 @@ import type { Route } from "next";
 
 import { requireUser } from "@/lib/auth/user";
 import { getCreditBalance, getCreditBalances, getCreditHistoryPage } from "@/lib/db/credits";
-import { getRecruitsTree, getUserById } from "@/lib/db/users";
+import { getRecruitsTree, getUserById, getUsersWithEmails } from "@/lib/db/users";
 import { getOrCreateReferralCode } from "@/lib/db/referral-codes";
+import { UserRole } from "@prisma/client/index";
 import { RecruitTree } from "@/components/hierarchy/recruit-tree";
 import { getInvitationsForSponsor } from "@/lib/db/invitations";
 import { ProfileSidebarCard } from "@/components/profile/profile-sidebar-card";
@@ -49,11 +50,16 @@ export default async function DashboardPage({
     url: `${appUrl}/api/referral?referral=${referralCode.code}`,
   };
 
-  const pendingInvitations = invitations.filter((i) => i.status === "PENDING").map((i) => ({
+  const pendingInvitations = invitations.filter((i) => i.status === "PENDING");
+  const existingEmails = await getUsersWithEmails(pendingInvitations.map((i) => i.email));
+  const isAdmin = user.role === UserRole.ADMIN;
+
+  const pendingInvitationProps = pendingInvitations.map((i) => ({
     id: i.id,
     name: i.name,
     email: i.email,
     referralCode: { code: i.referralCode.code },
+    userExists: existingEmails.has(i.email),
   }));
   const totalPages = Math.max(1, Math.ceil(historyData.total / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
@@ -221,8 +227,9 @@ export default async function DashboardPage({
 
           {/* Pending Invitations */}
           <PendingInvitationsSection
-            invitations={pendingInvitations}
+            invitations={pendingInvitationProps}
             appUrl={appUrl}
+            isAdmin={isAdmin}
           />
         </div>
       </div>

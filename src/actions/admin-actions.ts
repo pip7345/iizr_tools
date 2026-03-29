@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { UserRole } from "@prisma/client/index";
 
 import { requireAdmin, getRealUser, getRequestMeta } from "@/lib/auth/user";
-import { updateUserRole, updateUserSponsor } from "@/lib/db/users";
+import { updateUserRole, updateUserSponsor, createUserFromInvitation } from "@/lib/db/users";
 import {
   createAdminCreditTransaction,
   deleteAdminCreditTransaction,
@@ -28,6 +28,23 @@ const IMPERSONATE_COOKIE = "iizr_impersonate_user_id";
 const IMPERSONATE_ADMIN_COOKIE = "iizr_impersonate_admin_id";
 
 // ─── Role Management ─────────────────────────────────────
+
+export async function adminCreateUserFromInvitationAction(
+  invitationId: string,
+): Promise<ActionState> {
+  await requireAdmin();
+
+  try {
+    await createUserFromInvitation(invitationId);
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Could not create user.";
+    return { status: "error", message };
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/admin/users");
+  return { status: "success", message: "User pre-registered successfully." };
+}
 
 export async function grantAdminAction(userId: string): Promise<ActionState> {
   await requireAdmin();

@@ -32,7 +32,7 @@ async function syncUserFromClerk() {
     clerkUser.username ||
     email.split("@")[0];
 
-  // Check if user already exists
+  // Check if user already exists by Clerk ID
   const existing = await prisma.user.findUnique({
     where: { clerkId: clerkUser.id },
   });
@@ -41,6 +41,16 @@ async function syncUserFromClerk() {
     return prisma.user.update({
       where: { clerkId: clerkUser.id },
       data: { email, name: displayName },
+    });
+  }
+
+  // Check if a pre-registered user exists with this email (PENDING_SIGNUP)
+  const preRegistered = await prisma.user.findUnique({ where: { email } });
+  if (preRegistered && preRegistered.clerkId === null) {
+    // Link this Clerk account to the pre-registered record
+    return prisma.user.update({
+      where: { id: preRegistered.id },
+      data: { clerkId: clerkUser.id, name: displayName, status: "ACTIVE" },
     });
   }
 

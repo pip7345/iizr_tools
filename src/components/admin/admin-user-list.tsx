@@ -20,7 +20,7 @@ type UserRow = {
   email: string;
   preferredDisplayName: string | null;
   role: "USER" | "ADMIN";
-  status: "ACTIVE" | "INACTIVE";
+  status: "ACTIVE" | "INACTIVE" | "PENDING_SIGNUP";
   sponsorId: string | null;
   joinedAt: Date;
   sponsor: { id: string; name: string | null; email: string } | null;

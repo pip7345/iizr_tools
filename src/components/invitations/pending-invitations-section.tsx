@@ -7,6 +7,7 @@ import {
   deleteInvitationAction,
   updateInvitationAction,
 } from "@/actions/invitation-actions";
+import { adminCreateUserFromInvitationAction } from "@/actions/admin-actions";
 import type { ActionState } from "@/actions/user-actions";
 
 type Invitation = {
@@ -14,6 +15,7 @@ type Invitation = {
   name: string;
   email: string;
   referralCode: { code: string };
+  userExists: boolean;
 };
 
 const INIT: ActionState = { status: "idle", message: "" };
@@ -210,13 +212,18 @@ function EditRow({
 function InvitationRow({
   invitation,
   appUrl,
+  isAdmin,
 }: {
   invitation: Invitation;
   appUrl: string;
+  isAdmin: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [userCreated, setUserCreated] = useState(invitation.userExists);
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   const referralUrl = `${appUrl}/api/referral?referral=${invitation.referralCode.code}`;
 
@@ -225,6 +232,18 @@ function InvitationRow({
     await deleteInvitationAction(invitation.id);
     setDeleting(false);
     setConfirmDelete(false);
+  }
+
+  async function handleCreateUser() {
+    setCreating(true);
+    setCreateError(null);
+    const result = await adminCreateUserFromInvitationAction(invitation.id);
+    setCreating(false);
+    if (result.status === "success") {
+      setUserCreated(true);
+    } else {
+      setCreateError(result.message ?? null);
+    }
   }
 
   if (editing) {
@@ -239,39 +258,57 @@ function InvitationRow({
         <CopyButton text={referralUrl} />
       </td>
       <td className="px-5 py-3.5 text-right">
-        {confirmDelete ? (
-          <span className="inline-flex items-center gap-2">
-            <span className="text-xs text-[hsl(var(--muted-foreground))]">Delete?</span>
-            <button
-              onClick={handleDelete}
-              disabled={deleting}
-              className="text-xs font-medium text-red-400 hover:text-red-300 disabled:opacity-50"
-            >
-              {deleting ? "Deleting…" : "Yes"}
-            </button>
-            <button
-              onClick={() => setConfirmDelete(false)}
-              className="text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]"
-            >
-              No
-            </button>
-          </span>
-        ) : (
-          <span className="inline-flex items-center gap-3">
-            <button
-              onClick={() => setEditing(true)}
-              className="text-xs font-medium text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]"
-            >
-              Edit
-            </button>
-            <button
-              onClick={() => setConfirmDelete(true)}
-              className="text-xs font-medium text-red-500 hover:text-red-400"
-            >
-              Delete
-            </button>
-          </span>
-        )}
+        <div className="flex flex-col items-end gap-1">
+          <div className="inline-flex items-center gap-3">
+            {isAdmin && (
+              userCreated ? (
+                <span className="text-xs font-medium text-emerald-400">User created</span>
+              ) : (
+                <button
+                  onClick={handleCreateUser}
+                  disabled={creating}
+                  className="text-xs font-medium text-[hsl(var(--primary))] hover:opacity-80 disabled:opacity-50"
+                >
+                  {creating ? "Creating…" : "Create user"}
+                </button>
+              )
+            )}
+            {confirmDelete ? (
+              <span className="inline-flex items-center gap-2">
+                <span className="text-xs text-[hsl(var(--muted-foreground))]">Delete?</span>
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="text-xs font-medium text-red-400 hover:text-red-300 disabled:opacity-50"
+                >
+                  {deleting ? "Deleting…" : "Yes"}
+                </button>
+                <button
+                  onClick={() => setConfirmDelete(false)}
+                  className="text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]"
+                >
+                  No
+                </button>
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-3">
+                <button
+                  onClick={() => setEditing(true)}
+                  className="text-xs font-medium text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => setConfirmDelete(true)}
+                  className="text-xs font-medium text-red-500 hover:text-red-400"
+                >
+                  Delete
+                </button>
+              </span>
+            )}
+          </div>
+          {createError && <p className="text-xs text-red-400">{createError}</p>}
+        </div>
       </td>
     </tr>
   );
@@ -280,9 +317,11 @@ function InvitationRow({
 export function PendingInvitationsSection({
   invitations,
   appUrl,
+  isAdmin,
 }: {
   invitations: Invitation[];
   appUrl: string;
+  isAdmin: boolean;
 }) {
   const [showCreate, setShowCreate] = useState(false);
 
@@ -331,7 +370,7 @@ export function PendingInvitationsSection({
             </thead>
             <tbody className="divide-y divide-[hsl(var(--border))]">
               {invitations.map((inv) => (
-                <InvitationRow key={inv.id} invitation={inv} appUrl={appUrl} />
+                <InvitationRow key={inv.id} invitation={inv} appUrl={appUrl} isAdmin={isAdmin} />
               ))}
             </tbody>
           </table>

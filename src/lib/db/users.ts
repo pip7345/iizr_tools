@@ -229,3 +229,36 @@ export async function getLeaderboardPage(page: number, pageSize: number) {
     total,
   };
 }
+
+export async function createUserFromInvitation(invitationId: string) {
+  const invitation = await prisma.invitation.findUnique({
+    where: { id: invitationId, status: "PENDING" },
+  });
+
+  if (!invitation) {
+    throw new Error("Invitation not found or not pending.");
+  }
+
+  const existing = await prisma.user.findUnique({ where: { email: invitation.email } });
+  if (existing) {
+    throw new Error("A user with this email already exists.");
+  }
+
+  return prisma.user.create({
+    data: {
+      email: invitation.email,
+      name: invitation.name,
+      sponsorId: invitation.sponsorId,
+      status: UserStatus.PENDING_SIGNUP,
+    },
+  });
+}
+
+export async function getUsersWithEmails(emails: string[]): Promise<Set<string>> {
+  if (emails.length === 0) return new Set();
+  const users = await prisma.user.findMany({
+    where: { email: { in: emails } },
+    select: { email: true },
+  });
+  return new Set(users.map((u) => u.email));
+}
