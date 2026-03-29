@@ -1,5 +1,6 @@
 "use server";
 
+import { z } from "zod";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { UserRole } from "@prisma/client/index";
@@ -20,7 +21,8 @@ import {
   startImpersonation,
   endImpersonation,
 } from "@/lib/db/impersonation";
-import { adminCreditSchema, adminUpdateCreditSchema, rejectionReasonSchema } from "@/lib/validation/schemas";
+import { createInvitation } from "@/lib/db/invitations";
+import { adminCreditSchema, adminUpdateCreditSchema, rejectionReasonSchema, adminInvitationSchema } from "@/lib/validation/schemas";
 
 import type { ActionState } from "@/actions/user-actions";
 
@@ -43,7 +45,73 @@ export async function adminCreateUserFromInvitationAction(
 
   revalidatePath("/dashboard");
   revalidatePath("/admin/users");
+  revalidatePath("/admin/invitations");
   return { status: "success", message: "User pre-registered successfully." };
+}
+
+export async function adminCreateUserFromInvitationWithEmailAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireAdmin();
+
+  const invitationId = (formData.get("invitationId") as string | null)?.trim();
+  const email = (formData.get("email") as string | null)?.trim();
+
+  if (!invitationId) return { status: "error", message: "Missing invitation." };
+  if (!email) return { status: "error", message: "Email is required.", errors: { email: ["Email is required."] } };
+
+  const emailResult = z.email().safeParse(email);
+  if (!emailResult.success) {
+    return { status: "error", message: "Invalid email.", errors: { email: ["Invalid email address."] } };
+  }
+
+  try {
+    await createUserFromInvitation(invitationId, email);
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Could not create user.";
+    return { status: "error", message };
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/admin/users");
+  revalidatePath("/admin/invitations");
+  return { status: "success", message: "User pre-registered successfully." };
+}
+
+export async function adminCreateInvitationAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireAdmin();
+
+  const parsed = adminInvitationSchema.safeParse({
+    sponsorId: formData.get("sponsorId"),
+    name: formData.get("name"),
+    email: formData.get("email"),
+  });
+
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: "Please fix the validation errors.",
+      errors: parsed.error.flatten().fieldErrors,
+    };
+  }
+
+  try {
+    await createInvitation(parsed.data.sponsorId, {
+      name: parsed.data.name,
+      email: parsed.data.email || null,
+    });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Could not create invitation.";
+    return { status: "error", message };
+  }
+
+  revalidatePath("/admin/invitations");
+  revalidatePath("/dashboard");
+  return { status: "success", message: "Invitation created." };
 }
 
 export async function grantAdminAction(userId: string): Promise<ActionState> {

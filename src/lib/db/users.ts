@@ -230,7 +230,7 @@ export async function getLeaderboardPage(page: number, pageSize: number) {
   };
 }
 
-export async function createUserFromInvitation(invitationId: string) {
+export async function createUserFromInvitation(invitationId: string, emailOverride?: string) {
   const invitation = await prisma.invitation.findUnique({
     where: { id: invitationId, status: "PENDING" },
   });
@@ -239,18 +239,25 @@ export async function createUserFromInvitation(invitationId: string) {
     throw new Error("Invitation not found or not pending.");
   }
 
-  if (!invitation.email) {
-    throw new Error("Cannot create user: this invitation has no email address.");
+  const email = emailOverride?.trim() || invitation.email;
+
+  if (!email) {
+    throw new Error("Cannot create user: no email address provided.");
   }
 
-  const existing = await prisma.user.findUnique({ where: { email: invitation.email } });
+  const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
     throw new Error("A user with this email already exists.");
   }
 
+  // Persist the email on the invitation if it was missing
+  if (!invitation.email) {
+    await prisma.invitation.update({ where: { id: invitationId }, data: { email } });
+  }
+
   return prisma.user.create({
     data: {
-      email: invitation.email,
+      email,
       name: invitation.name,
       sponsorId: invitation.sponsorId,
       status: UserStatus.PENDING_SIGNUP,

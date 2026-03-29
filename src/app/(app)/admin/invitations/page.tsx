@@ -1,15 +1,46 @@
+import { headers } from "next/headers";
+
 import { requireAdmin } from "@/lib/auth/user";
 import { getPendingInvitations } from "@/lib/db/invitations";
+import { getAllUsers, getUsersWithEmails } from "@/lib/db/users";
+import { AdminInvitationsTable } from "@/components/admin/admin-invitations-table";
 
 export const metadata = { title: "Admin: Invitations" };
 
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(date);
-}
-
 export default async function AdminInvitationsPage() {
   await requireAdmin();
-  const invitations = await getPendingInvitations();
+
+  const [invitations, allUsers] = await Promise.all([
+    getPendingInvitations(),
+    getAllUsers(),
+  ]);
+
+  const emailsToCheck = invitations
+    .map((i) => i.email)
+    .filter((e): e is string => e !== null);
+  const existingEmails = await getUsersWithEmails(emailsToCheck);
+
+  const mapped = invitations.map((inv) => ({
+    id: inv.id,
+    name: inv.name,
+    email: inv.email,
+    createdAt: inv.createdAt,
+    referralCode: inv.referralCode,
+    sponsor: inv.sponsor ?? null,
+    userExists: inv.email !== null && existingEmails.has(inv.email),
+  }));
+
+  const sponsors = allUsers.map((u) => ({
+    id: u.id,
+    name: u.name,
+    email: u.email,
+    preferredDisplayName: u.preferredDisplayName,
+  }));
+
+  const headerStore = await headers();
+  const host = headerStore.get("host") ?? "localhost:3000";
+  const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
+  const appUrl = `${protocol}://${host}`;
 
   return (
     <div className="grid gap-8">
@@ -22,46 +53,12 @@ export default async function AdminInvitationsPage() {
         </h1>
       </section>
 
-      {invitations.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-[hsl(var(--border))] bg-[hsl(var(--card))/0.7] p-8 text-center text-sm text-[hsl(var(--muted-foreground))]">
-          No pending invitations.
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {invitations.map((inv) => (
-            <article
-              key={inv.id}
-              className="rounded-lg border border-[hsl(var(--border))] card-gradient p-5 shadow-sm"
-            >
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-base font-semibold text-[hsl(var(--foreground))]">
-                      {inv.name}
-                    </h3>
-                    <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-xs font-medium text-amber-400">
-                      pending
-                    </span>
-                  </div>
-                  <p className="text-sm text-[hsl(var(--muted-foreground))]">{inv.email}</p>
-                  <p className="text-xs text-[hsl(var(--muted-foreground))]">
-                    Sponsor: {inv.sponsor?.name ?? inv.sponsor?.email} ·
-                    Created {formatDate(inv.createdAt)}
-                  </p>
-                  {inv.creditGrants.length > 0 && (
-                    <p className="text-xs text-[hsl(var(--muted-foreground))]">
-                      {inv.creditGrants.length} credit grant{inv.creditGrants.length === 1 ? "" : "s"}
-                    </p>
-                  )}
-                </div>
-                <code className="rounded-lg bg-[hsl(var(--muted))/0.5] px-3 py-1 font-mono text-xs">
-                  {inv.referralCode.code}
-                </code>
-              </div>
-            </article>
-          ))}
-        </div>
-      )}
+      <AdminInvitationsTable
+        invitations={mapped}
+        sponsors={sponsors}
+        appUrl={appUrl}
+      />
     </div>
   );
 }
+

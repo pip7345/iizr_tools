@@ -49,3 +49,9 @@ export const updateInvitationSchema = z.object({
   name: z.string().min(1, "Name is required").max(120).trim(),
   email: z.email("Invalid email address").optional().or(z.literal("")),
 });
+
+export const adminInvitationSchema = z.object({
+  sponsorId: z.string().min(1, "Sponsor is required"),
+  name: z.string().min(1, "Name is required").max(120).trim(),
+  email: z.email("Invalid email address").optional().or(z.literal("")),
+});
