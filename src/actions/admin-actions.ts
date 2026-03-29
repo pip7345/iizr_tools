@@ -1,6 +1,5 @@
 "use server";
 
-import { z } from "zod";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { UserRole } from "@prisma/client/index";
@@ -38,36 +37,6 @@ export async function adminCreateUserFromInvitationAction(
 
   try {
     await createUserFromInvitation(invitationId);
-  } catch (e) {
-    const message = e instanceof Error ? e.message : "Could not create user.";
-    return { status: "error", message };
-  }
-
-  revalidatePath("/dashboard");
-  revalidatePath("/admin/users");
-  revalidatePath("/admin/invitations");
-  return { status: "success", message: "User pre-registered successfully." };
-}
-
-export async function adminCreateUserFromInvitationWithEmailAction(
-  _prev: ActionState,
-  formData: FormData,
-): Promise<ActionState> {
-  await requireAdmin();
-
-  const invitationId = (formData.get("invitationId") as string | null)?.trim();
-  const email = (formData.get("email") as string | null)?.trim();
-
-  if (!invitationId) return { status: "error", message: "Missing invitation." };
-  if (!email) return { status: "error", message: "Email is required.", errors: { email: ["Email is required."] } };
-
-  const emailResult = z.email().safeParse(email);
-  if (!emailResult.success) {
-    return { status: "error", message: "Invalid email.", errors: { email: ["Invalid email address."] } };
-  }
-
-  try {
-    await createUserFromInvitation(invitationId, email);
   } catch (e) {
     const message = e instanceof Error ? e.message : "Could not create user.";
     return { status: "error", message };

@@ -13,7 +13,7 @@ const initialState: ActionState = { status: "idle" };
 type Recruit = {
   id: string;
   name: string | null;
-  email: string;
+  email: string | null;
 };
 
 type NominateCreditFormProps = {
@@ -52,7 +52,7 @@ export function NominateCreditForm({ recruits }: NominateCreditFormProps) {
           <option value="">Select a recruit...</option>
           {recruits.map((r) => (
             <option key={r.id} value={r.id}>
-              {r.name ?? r.email}
+              {r.name ?? r.email ?? r.id}
             </option>
           ))}
         </select>

@@ -17,13 +17,13 @@ import { Input } from "@/components/ui/input";
 type UserRow = {
   id: string;
   name: string | null;
-  email: string;
+  email: string | null;
   preferredDisplayName: string | null;
   role: "USER" | "ADMIN";
   status: "ACTIVE" | "INACTIVE" | "PENDING_SIGNUP";
   sponsorId: string | null;
   joinedAt: Date;
-  sponsor: { id: string; name: string | null; email: string } | null;
+  sponsor: { id: string; name: string | null; email: string | null } | null;
   _count: { recruits: number };
 };
 
@@ -114,7 +114,7 @@ export function AdminUserList({ users, currentAdminId, creditBalances }: AdminUs
                     href={`/users/${user.id}` as Route}
                     className="text-base font-semibold text-[hsl(var(--foreground))] hover:text-[hsl(var(--primary))] hover:underline"
                   >
-                    {user.preferredDisplayName ?? user.name ?? user.email}
+                    {user.preferredDisplayName ?? user.name ?? user.email ?? user.id}
                   </Link>
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs font-medium ${
@@ -135,7 +135,8 @@ export function AdminUserList({ users, currentAdminId, creditBalances }: AdminUs
                     {user.status.toLowerCase()}
                   </span>
                 </div>
-                <p className="text-sm text-[hsl(var(--muted-foreground))]">{user.email}</p>
+                <p className="text-sm text-[hsl(var(--muted-foreground))]">{
+user.email ?? <span className="opacity-40 italic">no email</span>}</p>
                 <div className="flex flex-wrap gap-3 text-xs text-[hsl(var(--muted-foreground))]">
                   <span>{user._count.recruits} recruit{user._count.recruits === 1 ? "" : "s"}</span>
                   <span className={(creditBalances[user.id] ?? 0) >= 0 ? "text-emerald-400 font-medium" : "text-red-400 font-medium"}>
@@ -148,7 +149,7 @@ export function AdminUserList({ users, currentAdminId, creditBalances }: AdminUs
                         href={`/users/${user.sponsor.id}` as Route}
                         className="hover:text-[hsl(var(--primary))] hover:underline"
                       >
-                        {user.sponsor.name ?? user.sponsor.email}
+                        {user.sponsor.name ?? user.sponsor.email ?? user.sponsor.id}
                       </Link>
                     </span>
                   )}

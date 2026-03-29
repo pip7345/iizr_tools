@@ -230,7 +230,7 @@ export async function getLeaderboardPage(page: number, pageSize: number) {
   };
 }
 
-export async function createUserFromInvitation(invitationId: string, emailOverride?: string) {
+export async function createUserFromInvitation(invitationId: string) {
   const invitation = await prisma.invitation.findUnique({
     where: { id: invitationId, status: "PENDING" },
   });
@@ -239,30 +239,26 @@ export async function createUserFromInvitation(invitationId: string, emailOverri
     throw new Error("Invitation not found or not pending.");
   }
 
-  const email = emailOverride?.trim() || invitation.email;
-
-  if (!email) {
-    throw new Error("Cannot create user: no email address provided.");
+  if (invitation.pendingUserId) {
+    throw new Error("A pre-registered user already exists for this invitation.");
   }
 
-  const existing = await prisma.user.findUnique({ where: { email } });
-  if (existing) {
-    throw new Error("A user with this email already exists.");
-  }
-
-  // Persist the email on the invitation if it was missing
-  if (!invitation.email) {
-    await prisma.invitation.update({ where: { id: invitationId }, data: { email } });
-  }
-
-  return prisma.user.create({
+  const user = await prisma.user.create({
     data: {
-      email,
       name: invitation.name,
+      email: invitation.email || null,
       sponsorId: invitation.sponsorId,
       status: UserStatus.PENDING_SIGNUP,
     },
   });
+
+  // Link the invitation to this pre-registered user so Clerk sign-up can find them
+  await prisma.invitation.update({
+    where: { id: invitationId },
+    data: { pendingUserId: user.id },
+  });
+
+  return user;
 }
 
 export async function getUsersWithEmails(emails: string[]): Promise<Set<string>> {
@@ -271,5 +267,5 @@ export async function getUsersWithEmails(emails: string[]): Promise<Set<string>>
     where: { email: { in: emails } },
     select: { email: true },
   });
-  return new Set(users.map((u) => u.email));
+  return new Set(users.map((u) => u.email).filter((e): e is string => e !== null));
 }

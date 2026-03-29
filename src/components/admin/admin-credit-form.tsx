@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 
 const initialState: ActionState = { status: "idle" };
 
-type User = { id: string; name: string; email: string };
+type User = { id: string; name: string; email: string | null };
 
 type AdminCreditFormProps = {
   users: User[];
@@ -47,7 +47,7 @@ export function AdminCreditForm({ users }: AdminCreditFormProps) {
           <option value="">Select user...</option>
           {users.map((u) => (
             <option key={u.id} value={u.id}>
-              {u.name} ({u.email})
+              {u.name}{u.email ? ` (${u.email})` : ""}
             </option>
           ))}
         </select>

@@ -18,8 +18,8 @@ type Nomination = {
   amount: number;
   description: string;
   createdAt: Date;
-  user: { id: string; name: string | null; email: string };
-  nominator: { id: string; name: string | null; email: string };
+  user: { id: string; name: string | null; email: string | null };
+  nominator: { id: string; name: string | null; email: string | null };
 };
 
 type NominationApprovalListProps = {
@@ -114,12 +114,12 @@ export function NominationApprovalList({ nominations }: NominationApprovalListPr
                   <p className="text-sm text-[hsl(var(--muted-foreground))]">
                     For:{" "}
                     <Link href={`/users/${nom.user.id}` as Route} className="hover:text-[hsl(var(--primary))] hover:underline">
-                      {nom.user.name ?? nom.user.email}
+                      {nom.user.name ?? nom.user.email ?? nom.user.id}
                     </Link>
                     {" "}·{" "}
                     By:{" "}
                     <Link href={`/users/${nom.nominator.id}` as Route} className="hover:text-[hsl(var(--primary))] hover:underline">
-                      {nom.nominator.name ?? nom.nominator.email}
+                      {nom.nominator.name ?? nom.nominator.email ?? nom.nominator.id}
                     </Link>
                   </p>
                 </div>

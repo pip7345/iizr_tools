@@ -10,7 +10,7 @@ import { FormMessage } from "@/components/ui/form-message";
 type Sponsor = {
   id: string;
   name: string | null;
-  email: string;
+  email: string | null;
   preferredDisplayName: string | null;
 };
 
@@ -27,7 +27,7 @@ export function SponsorPicker({ sponsors }: SponsorPickerProps) {
     const q = search.toLowerCase();
     return (
       (s.name?.toLowerCase().includes(q) ?? false) ||
-      s.email.toLowerCase().includes(q) ||
+      (s.email?.toLowerCase().includes(q) ?? false) ||
       (s.preferredDisplayName?.toLowerCase().includes(q) ?? false)
     );
   });
@@ -67,9 +67,9 @@ export function SponsorPicker({ sponsors }: SponsorPickerProps) {
             >
               <div>
                 <p className="text-sm font-medium text-[hsl(var(--foreground))]">
-                  {sponsor.preferredDisplayName ?? sponsor.name ?? sponsor.email}
+                  {sponsor.preferredDisplayName ?? sponsor.name ?? sponsor.email ?? ""}
                 </p>
-                <p className="text-xs text-[hsl(var(--muted-foreground))]">{sponsor.email}</p>
+                <p className="text-xs text-[hsl(var(--muted-foreground))]">{sponsor.email ?? ""}</p>
               </div>
               <Button
                 variant="secondary"

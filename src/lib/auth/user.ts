@@ -32,7 +32,7 @@ async function syncUserFromClerk() {
     clerkUser.username ||
     email.split("@")[0];
 
-  // Check if user already exists by Clerk ID
+  // 1. Check if user already exists by Clerk ID
   const existing = await prisma.user.findUnique({
     where: { clerkId: clerkUser.id },
   });
@@ -44,7 +44,7 @@ async function syncUserFromClerk() {
     });
   }
 
-  // Check if a pre-registered user exists with this email (PENDING_SIGNUP)
+  // 2. Check if a pre-registered user exists with this email (PENDING_SIGNUP)
   const preRegistered = await prisma.user.findUnique({ where: { email } });
   if (preRegistered && preRegistered.clerkId === null) {
     // Link this Clerk account to the pre-registered record
@@ -54,16 +54,73 @@ async function syncUserFromClerk() {
     });
   }
 
-  // New user: process referral code if available
-  let sponsorId: string | undefined;
+  // Read referral cookie once — used by both step 3 and step 4
   const cookieStore = await cookies();
   const referralCode = cookieStore.get(REFERRAL_COOKIE)?.value;
 
+  // 3. Check if the referral code links to a pre-registered user via pendingUserId
+  //    This handles the case where the user was created without an email address.
   if (referralCode) {
-    // Clear the cookie
+    const code = await prisma.referralCode.findUnique({
+      where: { code: referralCode },
+      include: {
+        invitations: {
+          where: { status: "PENDING", pendingUserId: { not: null } },
+          include: { creditGrants: { where: { status: "APPROVED" } } },
+          take: 1,
+        },
+      },
+    });
+
+    if (code && code.expiresAt > new Date() && code.invitations[0]?.pendingUserId) {
+      const inv = code.invitations[0];
+      const pending = await prisma.user.findUnique({ where: { id: inv.pendingUserId! } });
+
+      if (pending?.clerkId === null) {
+        const linked = await prisma.user.update({
+          where: { id: pending.id },
+          data: { clerkId: clerkUser.id, email, name: displayName, status: "ACTIVE" },
+        });
+
+        // Convert approved invitation credits to real transactions
+        for (const grant of inv.creditGrants) {
+          const transaction = await prisma.creditTransaction.create({
+            data: {
+              userId: linked.id,
+              amount: grant.amount,
+              description: `Converted from invitation: ${grant.description}`,
+              nominatorId: grant.nominatorId,
+              approverId: grant.approverId,
+            },
+          });
+          await prisma.invitationCreditGrant.update({
+            where: { id: grant.id },
+            data: { status: "CONVERTED", creditTransactionId: transaction.id },
+          });
+        }
+
+        await prisma.invitationCreditGrant.updateMany({
+          where: { invitationId: inv.id, status: "PENDING" },
+          data: { status: "VOIDED" },
+        });
+
+        await prisma.invitation.update({
+          where: { id: inv.id },
+          data: { status: "CLAIMED", claimedByUserId: linked.id },
+        });
+
+        cookieStore.delete(REFERRAL_COOKIE);
+        return linked;
+      }
+    }
+  }
+
+  // 4. New user: process referral code for sponsor assignment
+  let sponsorId: string | undefined;
+
+  if (referralCode) {
     cookieStore.delete(REFERRAL_COOKIE);
 
-    // Resolve the referral code
     const code = await prisma.referralCode.findUnique({
       where: { code: referralCode },
       include: { user: true },
@@ -71,18 +128,6 @@ async function syncUserFromClerk() {
 
     if (code && code.expiresAt > new Date()) {
       sponsorId = code.userId;
-
-      // Check if this is an invitation-specific referral code
-      const invitation = await prisma.invitation.findFirst({
-        where: {
-          referralCodeId: code.id,
-          status: "PENDING",
-        },
-      });
-
-      if (invitation) {
-        // We'll claim the invitation after user creation below
-      }
     }
   }
 
@@ -95,7 +140,7 @@ async function syncUserFromClerk() {
     },
   });
 
-  // Claim any matching invitation
+  // 5. Claim any matching invitation for the new user
   if (referralCode) {
     const code = await prisma.referralCode.findUnique({
       where: { code: referralCode },
@@ -115,7 +160,6 @@ async function syncUserFromClerk() {
       });
 
       if (invitation) {
-        // Convert approved invitation credits to real transactions
         for (const grant of invitation.creditGrants) {
           const transaction = await prisma.creditTransaction.create({
             data: {
@@ -136,13 +180,11 @@ async function syncUserFromClerk() {
           });
         }
 
-        // Void pending grants
         await prisma.invitationCreditGrant.updateMany({
           where: { invitationId: invitation.id, status: "PENDING" },
           data: { status: "VOIDED" },
         });
 
-        // Mark invitation as claimed
         await prisma.invitation.update({
           where: { id: invitation.id },
           data: {

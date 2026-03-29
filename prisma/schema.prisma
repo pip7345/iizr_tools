@@ -9,7 +9,7 @@ datasource db {
 model User {
   id                           String                  @id @default(cuid())
   clerkId                      String?                 @unique
-  email                        String                  @unique
+  email                        String?                 @unique
   name                         String?
   preferredDisplayName         String?
   bio                          String?
@@ -35,6 +35,7 @@ model User {
   referralCodes                ReferralCode[]
   sponsor                      User?                   @relation("SponsorRecruits", fields: [sponsorId], references: [id])
   recruits                     User[]                  @relation("SponsorRecruits")
+  pendingInvitation            Invitation?             @relation("InvitationPendingUser")
 
   @@index([sponsorId])
   @@index([role])
@@ -62,11 +63,13 @@ model Invitation {
   referralCodeId  String
   status          InvitationStatus        @default(PENDING)
   claimedByUserId String?
+  pendingUserId   String?                 @unique
   createdAt       DateTime                @default(now())
   updatedAt       DateTime                @updatedAt
   claimedByUser   User?                   @relation("InvitationClaimedBy", fields: [claimedByUserId], references: [id])
   referralCode    ReferralCode            @relation(fields: [referralCodeId], references: [id])
   sponsor         User                    @relation("InvitationSponsor", fields: [sponsorId], references: [id])
+  pendingUser     User?                   @relation("InvitationPendingUser", fields: [pendingUserId], references: [id])
   creditGrants    InvitationCreditGrant[]
 
   @@index([sponsorId])

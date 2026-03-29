@@ -2,7 +2,7 @@ import { headers } from "next/headers";
 
 import { requireAdmin } from "@/lib/auth/user";
 import { getPendingInvitations } from "@/lib/db/invitations";
-import { getAllUsers, getUsersWithEmails } from "@/lib/db/users";
+import { getAllUsers } from "@/lib/db/users";
 import { AdminInvitationsTable } from "@/components/admin/admin-invitations-table";
 
 export const metadata = { title: "Admin: Invitations" };
@@ -15,11 +15,6 @@ export default async function AdminInvitationsPage() {
     getAllUsers(),
   ]);
 
-  const emailsToCheck = invitations
-    .map((i) => i.email)
-    .filter((e): e is string => e !== null);
-  const existingEmails = await getUsersWithEmails(emailsToCheck);
-
   const mapped = invitations.map((inv) => ({
     id: inv.id,
     name: inv.name,
@@ -27,7 +22,7 @@ export default async function AdminInvitationsPage() {
     createdAt: inv.createdAt,
     referralCode: inv.referralCode,
     sponsor: inv.sponsor ?? null,
-    userExists: inv.email !== null && existingEmails.has(inv.email),
+    userExists: inv.pendingUserId !== null,
   }));
 
   const sponsors = allUsers.map((u) => ({

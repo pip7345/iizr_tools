@@ -80,7 +80,7 @@ export default async function AppLayout({
                 {user.preferredDisplayName ?? user.name ?? user.email}
               </p>
               <p className="text-xs text-[hsl(var(--muted-foreground))] truncate">
-                {user.email}
+                {user.email ?? ""}
               </p>
             </div>
           </div>
@@ -94,7 +94,7 @@ export default async function AppLayout({
         {impersonation && (
           <div className="border-b border-amber-500/30 bg-amber-900/40 px-6 py-2 text-center text-sm">
             <span className="text-amber-200">
-              Impersonating <strong>{impersonation.impersonatedUser.name}</strong> ({impersonation.impersonatedUser.email})
+              Impersonating <strong>{impersonation.impersonatedUser.name}</strong> ({impersonation.impersonatedUser.email ?? ""})
             </span>
             <form action={stopImpersonationAction} className="ml-4 inline">
               <button

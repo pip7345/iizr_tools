@@ -26,7 +26,7 @@ export default async function AdminCreditsPage() {
         <AdminCreditForm
           users={users.map((u) => ({
             id: u.id,
-            name: u.preferredDisplayName ?? u.name ?? u.email,
+            name: u.preferredDisplayName ?? u.name ?? u.email ?? u.id,
             email: u.email,
           }))}
         />

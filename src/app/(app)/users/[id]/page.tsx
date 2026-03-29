@@ -62,7 +62,7 @@ export default async function UserProfilePage({
   const sponsorInfo = user.sponsor
     ? {
         id: user.sponsor.id,
-        name: user.sponsor.preferredDisplayName ?? user.sponsor.name ?? user.sponsor.email,
+        name: user.sponsor.preferredDisplayName ?? user.sponsor.name ?? user.sponsor.email ?? "",
       }
     : null;
 

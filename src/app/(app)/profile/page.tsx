@@ -34,7 +34,7 @@ export default async function ProfilePage() {
         <div className="lg:self-start">
           <ProfileSidebarCard
             id={user.id}
-            displayName={user.preferredDisplayName ?? user.name ?? user.email}
+            displayName={user.preferredDisplayName ?? user.name ?? user.email ?? ""}
             role={user.role}
             status={user.status}
             bio={user.bio}

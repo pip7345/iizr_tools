@@ -3,7 +3,7 @@ import type { Route } from "next";
 
 import { requireUser } from "@/lib/auth/user";
 import { getCreditBalance, getCreditBalances, getCreditHistoryPage } from "@/lib/db/credits";
-import { getRecruitsTree, getUserById, getUsersWithEmails } from "@/lib/db/users";
+import { getRecruitsTree, getUserById } from "@/lib/db/users";
 import { getOrCreateReferralCode } from "@/lib/db/referral-codes";
 import { UserRole } from "@prisma/client/index";
 import { RecruitTree } from "@/components/hierarchy/recruit-tree";
@@ -41,7 +41,7 @@ export default async function DashboardPage({
 
   const sponsor = userWithSponsor?.sponsor ?? null;
   const sponsorInfo = sponsor
-    ? { id: sponsor.id, name: sponsor.preferredDisplayName ?? sponsor.name ?? sponsor.email }
+    ? { id: sponsor.id, name: sponsor.preferredDisplayName ?? sponsor.name ?? sponsor.email ?? "" }
     : null;
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
@@ -51,9 +51,6 @@ export default async function DashboardPage({
   };
 
   const pendingInvitations = invitations.filter((i) => i.status === "PENDING");
-  const existingEmails = await getUsersWithEmails(
-    pendingInvitations.map((i) => i.email).filter((e): e is string => e !== null),
-  );
   const isAdmin = user.role === UserRole.ADMIN;
 
   const pendingInvitationProps = pendingInvitations.map((i) => ({
@@ -61,7 +58,7 @@ export default async function DashboardPage({
     name: i.name,
     email: i.email,
     referralCode: { code: i.referralCode.code },
-    userExists: i.email !== null && existingEmails.has(i.email),
+    userExists: i.pendingUserId !== null,
   }));
   const totalPages = Math.max(1, Math.ceil(historyData.total / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
@@ -80,7 +77,7 @@ export default async function DashboardPage({
         <div className="lg:self-start">
           <ProfileSidebarCard
             id={user.id}
-            displayName={user.preferredDisplayName ?? user.name ?? user.email}
+            displayName={user.preferredDisplayName ?? user.name ?? user.email ?? ""}
             role={user.role}
             status={user.status}
             bio={user.bio}

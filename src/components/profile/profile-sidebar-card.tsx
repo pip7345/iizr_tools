@@ -19,7 +19,7 @@ type Props = {
   bio?: string | null;
   location?: string | null;
   joinedAt: Date;
-  sponsor: { id: string; name: string } | null;
+  sponsor: { id: string; name: string | null } | null;
   recruitCount: number;
   balance: number;
   isOwnProfile?: boolean;

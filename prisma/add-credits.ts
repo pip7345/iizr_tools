@@ -70,7 +70,7 @@ async function main() {
     await prisma.creditTransaction.createMany({ data: entries });
     totalCreated += entries.length;
 
-    const label = user.preferredDisplayName ?? user.name ?? user.email;
+    const label = user.preferredDisplayName ?? user.name ?? user.email ?? user.id;
     console.log(
       `  ✓ ${label.padEnd(28)}  attendance: 1  recruiting: ${user.recruits.length * 2}  (${entries.length} rows)`
     );

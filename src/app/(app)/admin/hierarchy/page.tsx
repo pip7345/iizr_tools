@@ -48,10 +48,10 @@ export default async function AdminHierarchyPage() {
               >
                 <div>
                   <span className="font-medium text-amber-300">{inv.name}</span>
-                  <span className="ml-2 text-amber-400">{inv.email}</span>
+                  <span className="ml-2 text-amber-400">{inv.email ?? ""}</span>
                 </div>
                 <span className="text-xs text-amber-400">
-                  Sponsor: {inv.sponsor?.name ?? inv.sponsor?.email}
+                  Sponsor: {inv.sponsor?.name ?? inv.sponsor?.email ?? ""}
                 </span>
               </div>
             ))}

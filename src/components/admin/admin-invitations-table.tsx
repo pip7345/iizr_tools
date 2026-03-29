@@ -5,14 +5,13 @@ import { startTransition, useActionState, useEffect, useRef, useState } from "re
 import {
   adminCreateInvitationAction,
   adminCreateUserFromInvitationAction,
-  adminCreateUserFromInvitationWithEmailAction,
 } from "@/actions/admin-actions";
 import type { ActionState } from "@/actions/user-actions";
 
 type Sponsor = {
   id: string;
   name: string | null;
-  email: string;
+  email: string | null;
   preferredDisplayName: string | null;
 };
 
@@ -22,7 +21,7 @@ type Invitation = {
   email: string | null;
   createdAt: Date;
   referralCode: { code: string };
-  sponsor: { id: string; name: string | null; email: string } | null;
+  sponsor: { id: string; name: string | null; email: string | null } | null;
   userExists: boolean;
 };
 
@@ -63,80 +62,39 @@ function CopyButton({ text }: { text: string }) {
 
 function CreateUserCell({
   invitationId,
-  initialEmail,
   initialExists,
 }: {
   invitationId: string;
-  initialEmail: string | null;
   initialExists: boolean;
 }) {
   const [exists, setExists] = useState(initialExists);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // shown when no email on the invitation
-  const [emailState, emailFormAction, emailPending] = useActionState(
-    adminCreateUserFromInvitationWithEmailAction,
-    { status: "idle", message: "" } as import("@/actions/user-actions").ActionState,
-  );
-
-  useEffect(() => {
-    if (emailState.status === "success") setExists(true);
-  }, [emailState]);
 
   if (exists) {
     return <span className="text-xs font-medium text-emerald-400">User created</span>;
   }
 
-  // Invitation has an email — simple one-click button
-  if (initialEmail) {
-    return (
-      <div className="flex flex-col items-start gap-0.5">
-        <button
-          disabled={pending}
-          onClick={async () => {
-            setPending(true);
-            setError(null);
-            const r = await adminCreateUserFromInvitationAction(invitationId);
-            setPending(false);
-            if (r.status === "success") setExists(true);
-            else setError(r.message ?? null);
-          }}
-          className="text-xs font-medium text-[hsl(var(--primary))] hover:opacity-80 disabled:opacity-50"
-        >
-          {pending ? "Creating…" : "Create user"}
-        </button>
-        {error && <span className="text-xs text-red-400">{error}</span>}
-      </div>
-    );
-  }
-
-  // No email — show inline email entry
   return (
-    <form action={emailFormAction} className="flex flex-col gap-1">
-      <input type="hidden" name="invitationId" value={invitationId} />
-      <div className="flex items-center gap-1">
-        <input
-          name="email"
-          type="email"
-          required
-          placeholder="email@example.com"
-          className="w-40 rounded border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-2 py-0.5 text-xs text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:outline-none focus:ring-1 focus:ring-[hsl(var(--primary)/0.5)]"
-        />
-        <button
-          type="submit"
-          disabled={emailPending}
-          className="rounded bg-[hsl(var(--primary))] px-2 py-0.5 text-xs font-medium text-[hsl(var(--primary-foreground))] hover:opacity-90 disabled:opacity-50"
-        >
-          {emailPending ? "…" : "Create"}
-        </button>
-      </div>
-      {emailState.status === "error" && (
-        <span className="text-xs text-red-400">{emailState.message}</span>
-      )}
-    </form>
+    <div className="flex flex-col items-start gap-0.5">
+      <button
+        disabled={pending}
+        onClick={async () => {
+          setPending(true);
+          setError(null);
+          const r = await adminCreateUserFromInvitationAction(invitationId);
+          setPending(false);
+          if (r.status === "success") setExists(true);
+          else setError(r.message ?? null);
+        }}
+        className="text-xs font-medium text-[hsl(var(--primary))] hover:opacity-80 disabled:opacity-50"
+      >
+        {pending ? "Creating…" : "Create user"}
+      </button>
+      {error && <span className="text-xs text-red-400">{error}</span>}
+    </div>
   );
 }
-
 function CreateForm({
   sponsors,
   onDone,
@@ -171,7 +129,7 @@ function CreateForm({
             <option value="">— select sponsor —</option>
             {sponsors.map((s) => (
               <option key={s.id} value={s.id}>
-                {s.preferredDisplayName ?? s.name ?? s.email}
+                {s.preferredDisplayName ?? s.name ?? s.email ?? s.id}
               </option>
             ))}
           </select>
@@ -304,7 +262,6 @@ export function AdminInvitationsTable({
                   <td className="px-3 py-2">
                     <CreateUserCell
                       invitationId={inv.id}
-                      initialEmail={inv.email}
                       initialExists={inv.userExists}
                     />
                   </td>

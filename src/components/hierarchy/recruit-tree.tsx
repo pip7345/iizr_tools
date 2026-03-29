@@ -11,7 +11,7 @@ import { FormMessage } from "@/components/ui/form-message";
 type Recruit = {
   id: string;
   name: string | null;
-  email: string;
+  email: string | null;
   preferredDisplayName: string | null;
   role: string;
   status: string;
