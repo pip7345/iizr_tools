@@ -1,6 +1,8 @@
 import Link from "next/link";
 
 import { UserButton } from "@clerk/nextjs";
+
+import { SignOutBtn } from "@/components/ui/sign-out-button";
 import { auth } from "@clerk/nextjs/server";
 import { UserRole } from "@prisma/client/index";
 
@@ -82,6 +84,7 @@ export default async function AppLayout({
               </p>
             </div>
           </div>
+          <SignOutBtn className="nav-item flex items-center space-x-3 px-4 py-2 text-sm font-medium text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] w-full" />
         </div>
       </aside>
 

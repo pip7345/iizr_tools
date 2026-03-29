@@ -57,7 +57,7 @@ model ReferralCode {
 model Invitation {
   id              String                  @id @default(cuid())
   name            String
-  email           String
+  email           String?
   sponsorId       String
   referralCodeId  String
   status          InvitationStatus        @default(PENDING)

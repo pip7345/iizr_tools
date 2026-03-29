@@ -239,6 +239,10 @@ export async function createUserFromInvitation(invitationId: string) {
     throw new Error("Invitation not found or not pending.");
   }
 
+  if (!invitation.email) {
+    throw new Error("Cannot create user: this invitation has no email address.");
+  }
+
   const existing = await prisma.user.findUnique({ where: { email: invitation.email } });
   if (existing) {
     throw new Error("A user with this email already exists.");

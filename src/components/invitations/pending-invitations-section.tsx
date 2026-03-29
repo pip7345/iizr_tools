@@ -13,7 +13,7 @@ import type { ActionState } from "@/actions/user-actions";
 type Invitation = {
   id: string;
   name: string;
-  email: string;
+  email: string | null;
   referralCode: { code: string };
   userExists: boolean;
 };
@@ -93,12 +93,11 @@ function CreateForm({
         </div>
         <div>
           <label className="mb-1 block text-xs font-medium text-[hsl(var(--muted-foreground))]">
-            Email
+            Email <span className="font-normal opacity-60">(optional)</span>
           </label>
           <input
             name="email"
             type="email"
-            required
             placeholder="jane@example.com"
             className="w-full rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 py-1.5 text-sm text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary)/0.5)]"
           />
@@ -170,13 +169,12 @@ function EditRow({
             </div>
             <div>
               <label className="mb-1 block text-xs font-medium text-[hsl(var(--muted-foreground))]">
-                Email
+                Email <span className="font-normal opacity-60">(optional)</span>
               </label>
               <input
                 name="email"
                 type="email"
-                required
-                defaultValue={invitation.email}
+                defaultValue={invitation.email ?? ""}
                 className="w-full rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 py-1.5 text-sm text-[hsl(var(--foreground))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary)/0.5)]"
               />
               {state.errors?.email && (
@@ -253,7 +251,7 @@ function InvitationRow({
   return (
     <tr className="hover:bg-[hsl(var(--muted)/0.3)]">
       <td className="px-5 py-3.5 text-sm text-[hsl(var(--foreground))]">{invitation.name}</td>
-      <td className="px-5 py-3.5 text-sm text-[hsl(var(--muted-foreground))]">{invitation.email}</td>
+      <td className="px-5 py-3.5 text-sm text-[hsl(var(--muted-foreground))]">{invitation.email ?? <span className="opacity-40">—</span>}</td>
       <td className="px-5 py-3.5">
         <CopyButton text={referralUrl} />
       </td>

@@ -8,7 +8,7 @@ export const updateProfileSchema = z.object({
 
 export const invitationSchema = z.object({
   name: z.string().min(1, "Name is required").max(120).trim(),
-  email: z.email("Invalid email address"),
+  email: z.email("Invalid email address").optional().or(z.literal("")),
 });
 
 export const creditNominationSchema = z.object({
@@ -47,5 +47,5 @@ export const invitationCreditGrantSchema = z.object({
 export const updateInvitationSchema = z.object({
   invitationId: z.string().min(1),
   name: z.string().min(1, "Name is required").max(120).trim(),
-  email: z.email("Invalid email address"),
+  email: z.email("Invalid email address").optional().or(z.literal("")),
 });

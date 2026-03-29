@@ -20,7 +20,7 @@ type Grant = {
   invitation: {
     id: string;
     name: string;
-    email: string;
+    email: string | null;
     sponsor: { id: string; name: string | null };
   };
   nominator: { id: string; name: string | null };
@@ -66,7 +66,7 @@ export function InvitationCreditApprovalList({ grants }: InvitationCreditApprova
                 {grant.description}
               </p>
               <p className="text-sm text-[hsl(var(--muted-foreground))]">
-                Invitation: {grant.invitation.name} ({grant.invitation.email})
+                Invitation: {grant.invitation.name}{grant.invitation.email ? ` (${grant.invitation.email})` : ""}
                 {" "}·{" "}Sponsor:{" "}
                 <Link href={`/users/${grant.invitation.sponsor.id}` as Route} className="hover:text-[hsl(var(--primary))] hover:underline">
                   {grant.invitation.sponsor.name}

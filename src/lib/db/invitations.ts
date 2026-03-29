@@ -10,7 +10,7 @@ import { createReferralCode } from "@/lib/db/referral-codes";
 
 export async function createInvitation(
   sponsorId: string,
-  input: { name: string; email: string },
+  input: { name: string; email?: string | null },
 ) {
   // Create a dedicated referral code for this invitation
   const referralCode = await createReferralCode(sponsorId);
@@ -18,9 +18,9 @@ export async function createInvitation(
   return prisma.invitation.create({
     data: {
       name: input.name,
-      email: input.email,
-      sponsorId,
-      referralCodeId: referralCode.id,
+      email: input.email || null,
+      sponsor: { connect: { id: sponsorId } },
+      referralCode: { connect: { id: referralCode.id } },
     },
     include: { referralCode: true },
   });
@@ -52,7 +52,7 @@ export async function getPendingInvitations() {
 export async function updateInvitation(
   invitationId: string,
   sponsorId: string,
-  input: { name: string; email: string },
+  input: { name: string; email?: string | null },
 ) {
   const invitation = await prisma.invitation.findFirst({
     where: { id: invitationId, sponsorId, status: InvitationStatus.PENDING },
@@ -64,7 +64,7 @@ export async function updateInvitation(
 
   return prisma.invitation.update({
     where: { id: invitationId },
-    data: { name: input.name, email: input.email },
+    data: { name: input.name, email: input.email || null },
     include: { referralCode: true },
   });
 }

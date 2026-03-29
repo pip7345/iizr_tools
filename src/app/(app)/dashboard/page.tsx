@@ -51,7 +51,9 @@ export default async function DashboardPage({
   };
 
   const pendingInvitations = invitations.filter((i) => i.status === "PENDING");
-  const existingEmails = await getUsersWithEmails(pendingInvitations.map((i) => i.email));
+  const existingEmails = await getUsersWithEmails(
+    pendingInvitations.map((i) => i.email).filter((e): e is string => e !== null),
+  );
   const isAdmin = user.role === UserRole.ADMIN;
 
   const pendingInvitationProps = pendingInvitations.map((i) => ({
@@ -59,7 +61,7 @@ export default async function DashboardPage({
     name: i.name,
     email: i.email,
     referralCode: { code: i.referralCode.code },
-    userExists: existingEmails.has(i.email),
+    userExists: i.email !== null && existingEmails.has(i.email),
   }));
   const totalPages = Math.max(1, Math.ceil(historyData.total / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
