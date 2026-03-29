@@ -1,0 +1,5 @@
+- On the dashboard remove the option to see All Users. We should only see My Recruits.
+
+- Each user should have one referral code assigned to them. When the user visits the dashboard, if the referral code doesn't exist, create it. If multiple referral codes exist, it doesn't matter which is used so pick the first one. This code should be able to be copied from the dashboard on the profile on the left. Replace the "Referral Codes" with this copyable code. Users should have a static referral code assigned to them and shouldn't be able to add or delete referral codes. Remove the /referrals page. It should be clear to the user that they are meant to copy and paste this code somewhere else like an e-mail or text message.
+
+- Pending Invitations should be another table on the dashboard underneath Recruit Heirarchy. Users should be able to create, update and delete pending invitations. For now, a user should not be able to nominate credits via an invitation, but this will change in the future so keep this functionality in the database. The Pending invitations table should have a referral link that can by copied by a user.

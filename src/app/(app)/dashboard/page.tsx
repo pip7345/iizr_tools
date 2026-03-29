@@ -3,11 +3,12 @@ import type { Route } from "next";
 
 import { requireUser } from "@/lib/auth/user";
 import { getCreditBalance, getCreditBalances, getCreditHistoryPage } from "@/lib/db/credits";
-import { getRecruitsTree, getRootUsers, getUserById } from "@/lib/db/users";
-import { getReferralCodesForUser } from "@/lib/db/referral-codes";
+import { getRecruitsTree, getUserById } from "@/lib/db/users";
+import { getOrCreateReferralCode } from "@/lib/db/referral-codes";
 import { RecruitTree } from "@/components/hierarchy/recruit-tree";
 import { getInvitationsForSponsor } from "@/lib/db/invitations";
 import { ProfileSidebarCard } from "@/components/profile/profile-sidebar-card";
+import { PendingInvitationsSection } from "@/components/invitations/pending-invitations-section";
 
 export const metadata = {
   title: "Dashboard",
@@ -23,29 +24,37 @@ export default async function DashboardPage({
   const user = await requireUser();
   const sp = await searchParams;
   const page = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);
-  const isAdmin = user.role === "ADMIN";
-  const showAllUsers = isAdmin && sp.view === "all";
 
-  const [creditBalance, myRecruits, referralCodes, invitations, userWithSponsor, historyData] =
+  const [creditBalance, myRecruits, referralCode, invitations, userWithSponsor, historyData] =
     await Promise.all([
       getCreditBalance(user.id),
       getRecruitsTree(user.id),
-      getReferralCodesForUser(user.id),
+      getOrCreateReferralCode(user.id),
       getInvitationsForSponsor(user.id),
       getUserById(user.id),
       getCreditHistoryPage(user.id, page, PAGE_SIZE),
     ]);
 
-  const treeSource = showAllUsers ? await getRootUsers() : myRecruits;
-  const treeBalances = await getCreditBalances(treeSource.map((r) => r.id));
-  const treeRecruits = treeSource.map((r) => ({ ...r, creditBalance: treeBalances[r.id] ?? 0 }));
+  const treeBalances = await getCreditBalances(myRecruits.map((r) => r.id));
+  const treeRecruits = myRecruits.map((r) => ({ ...r, creditBalance: treeBalances[r.id] ?? 0 }));
 
   const sponsor = userWithSponsor?.sponsor ?? null;
   const sponsorInfo = sponsor
     ? { id: sponsor.id, name: sponsor.preferredDisplayName ?? sponsor.name ?? sponsor.email }
     : null;
 
-  const pendingInvitations = invitations.filter((i) => i.status === "PENDING");
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
+  const referralCodeProp = {
+    code: referralCode.code,
+    url: `${appUrl}/api/referral?referral=${referralCode.code}`,
+  };
+
+  const pendingInvitations = invitations.filter((i) => i.status === "PENDING").map((i) => ({
+    id: i.id,
+    name: i.name,
+    email: i.email,
+    referralCode: { code: i.referralCode.code },
+  }));
   const totalPages = Math.max(1, Math.ceil(historyData.total / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
 
@@ -73,8 +82,8 @@ export default async function DashboardPage({
             recruitCount={myRecruits.length}
             balance={creditBalance}
             isOwnProfile
+            referralCode={referralCodeProp}
             extraStats={[
-              { label: "Referral codes", value: referralCodes.length, href: "/referrals" },
               {
                 label: "Pending invitations",
                 value: pendingInvitations.length,
@@ -197,37 +206,11 @@ export default async function DashboardPage({
               <h2 className="text-lg font-semibold tracking-tight text-[hsl(var(--foreground))]">
                 Recruit hierarchy
               </h2>
-              {isAdmin && (
-                <div className="flex items-center gap-1 rounded-lg border border-[hsl(var(--border))] p-1 text-xs">
-                  <Link
-                    href={"/dashboard" as Route}
-                    className={`rounded-md px-3 py-1 font-medium transition ${
-                      !showAllUsers
-                        ? "bg-[hsl(var(--primary))] text-white"
-                        : "text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]"
-                    }`}
-                  >
-                    My recruits
-                  </Link>
-                  <Link
-                    href={"/dashboard?view=all" as Route}
-                    className={`rounded-md px-3 py-1 font-medium transition ${
-                      showAllUsers
-                        ? "bg-[hsl(var(--primary))] text-white"
-                        : "text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]"
-                    }`}
-                  >
-                    All users
-                  </Link>
-                </div>
-              )}
             </div>
 
             {treeRecruits.length === 0 ? (
               <div className="rounded-lg border border-dashed border-[hsl(var(--border))] bg-[hsl(var(--card))/0.7] p-8 text-center text-sm text-[hsl(var(--muted-foreground))]">
-                {showAllUsers
-                  ? "No users in the system."
-                  : "No recruits yet. Share your referral link to start building your network."}
+                No recruits yet. Share your referral link to start building your network.
               </div>
             ) : (
               <div className="rounded-lg border border-[hsl(var(--border))] card-gradient p-6 shadow-sm">
@@ -235,6 +218,12 @@ export default async function DashboardPage({
               </div>
             )}
           </div>
+
+          {/* Pending Invitations */}
+          <PendingInvitationsSection
+            invitations={pendingInvitations}
+            appUrl={appUrl}
+          />
         </div>
       </div>
     </div>

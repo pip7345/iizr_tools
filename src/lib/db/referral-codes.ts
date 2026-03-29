@@ -25,6 +25,16 @@ export async function getReferralCodesForUser(userId: string) {
   });
 }
 
+/** Returns the user's first referral code, creating one if none exists. */
+export async function getOrCreateReferralCode(userId: string) {
+  const existing = await prisma.referralCode.findFirst({
+    where: { userId },
+    orderBy: { createdAt: "asc" },
+  });
+  if (existing) return existing;
+  return createReferralCode(userId);
+}
+
 export async function resolveReferralCode(code: string) {
   const referralCode = await prisma.referralCode.findUnique({
     where: { code },

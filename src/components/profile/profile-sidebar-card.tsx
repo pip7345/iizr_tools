@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Route } from "next";
 
 import { ImpersonateButton } from "@/components/profile/impersonate-button";
+import { ReferralCodeCopy } from "@/components/profile/referral-code-copy";
 
 export type SidebarStat = {
   label: string;
@@ -24,6 +25,7 @@ type Props = {
   isOwnProfile?: boolean;
   canImpersonate?: boolean;
   extraStats?: SidebarStat[];
+  referralCode?: { code: string; url: string };
 };
 
 export function ProfileSidebarCard({
@@ -40,6 +42,7 @@ export function ProfileSidebarCard({
   isOwnProfile,
   canImpersonate,
   extraStats,
+  referralCode,
 }: Props) {
   return (
     <div className="space-y-5 rounded-lg border border-[hsl(var(--border))] card-gradient p-6">
@@ -160,7 +163,7 @@ export function ProfileSidebarCard({
           </div>
         )}
 
-        {/* Extra stats (e.g. referral codes, pending invitations on dashboard) */}
+        {/* Extra stats (e.g. pending invitations on dashboard) */}
         {extraStats?.map((stat) => (
           <div key={stat.label} className="flex items-center justify-between gap-2">
             <dt className="text-xs font-medium uppercase tracking-widest text-[hsl(var(--muted-foreground))]">
@@ -184,6 +187,16 @@ export function ProfileSidebarCard({
           </div>
         ))}
       </dl>
+
+      {referralCode && (
+        <>
+          <div className="border-t border-[hsl(var(--border))]" />
+          <div className="space-y-1.5">
+            <p className="text-xs font-medium uppercase tracking-widest text-[hsl(var(--muted-foreground))]">Your referral link</p>
+            <ReferralCodeCopy code={referralCode.code} url={referralCode.url} />
+          </div>
+        </>
+      )}
 
       {isOwnProfile && (
         <>

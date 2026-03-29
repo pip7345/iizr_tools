@@ -49,6 +49,26 @@ export async function getPendingInvitations() {
   });
 }
 
+export async function updateInvitation(
+  invitationId: string,
+  sponsorId: string,
+  input: { name: string; email: string },
+) {
+  const invitation = await prisma.invitation.findFirst({
+    where: { id: invitationId, sponsorId, status: InvitationStatus.PENDING },
+  });
+
+  if (!invitation) {
+    throw new Error("Invitation not found or not editable.");
+  }
+
+  return prisma.invitation.update({
+    where: { id: invitationId },
+    data: { name: input.name, email: input.email },
+    include: { referralCode: true },
+  });
+}
+
 export async function deleteInvitation(invitationId: string, sponsorId: string) {
   const invitation = await prisma.invitation.findFirst({
     where: { id: invitationId, sponsorId, status: InvitationStatus.PENDING },
