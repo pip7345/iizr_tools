@@ -8,6 +8,7 @@ import {
   UserActionsCell,
   type CreditCategoryOption,
 } from "@/components/ui/user-actions-cell";
+import { SignupLinkModal } from "@/components/ui/signup-link-modal";
 
 export type Recruit = {
   id: string;
@@ -19,6 +20,7 @@ export type Recruit = {
   sponsorId?: string | null;
   joinedAt: Date;
   creditBalance?: number;
+  signupCode?: string | null;
   _count: { recruits: number };
 };
 
@@ -68,6 +70,7 @@ function RecruitRow({
   const [expanded, setExpanded] = useState(false);
   const [children, setChildren] = useState<Recruit[] | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showSignupModal, setShowSignupModal] = useState(false);
 
   const hasChildren = recruit._count.recruits > 0;
 
@@ -124,9 +127,18 @@ function RecruitRow({
 
         {/* Status */}
         <td className="px-3 py-2.5">
-          <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_CLS[recruit.status] ?? "bg-[hsl(var(--muted)/0.4)] text-[hsl(var(--muted-foreground))]"}`}>
-            {STATUS_LABEL[recruit.status] ?? recruit.status}
-          </span>
+          {recruit.status === "PENDING_SIGNUP" && recruit.signupCode ? (
+            <button
+              onClick={() => setShowSignupModal(true)}
+              className={`rounded-full px-2 py-0.5 text-xs font-medium underline decoration-dotted underline-offset-2 transition hover:brightness-125 ${STATUS_CLS[recruit.status]}`}
+            >
+              {STATUS_LABEL[recruit.status]}
+            </button>
+          ) : (
+            <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_CLS[recruit.status] ?? "bg-[hsl(var(--muted)/0.4)] text-[hsl(var(--muted-foreground))]"}`}>
+              {STATUS_LABEL[recruit.status] ?? recruit.status}
+            </span>
+          )}
         </td>
 
         {/* Credits */}
@@ -151,6 +163,14 @@ function RecruitRow({
           />
         </td>
       </tr>
+
+      {showSignupModal && recruit.signupCode && (
+        <SignupLinkModal
+          signupCode={recruit.signupCode}
+          userName={recruit.preferredDisplayName ?? recruit.name}
+          onClose={() => setShowSignupModal(false)}
+        />
+      )}
 
       {expanded && children && children.length > 0 && children.map((child) => (
         <RecruitRow

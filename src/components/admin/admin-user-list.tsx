@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/user-actions-cell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { SignupLinkModal } from "@/components/ui/signup-link-modal";
 
 type UserRow = {
   id: string;
@@ -21,6 +22,7 @@ type UserRow = {
   status: "ACTIVE" | "INACTIVE" | "PENDING_SIGNUP";
   sponsorId: string | null;
   joinedAt: Date;
+  signupCode?: string | null;
   sponsor: { id: string; name: string | null; email: string | null } | null;
   _count: { recruits: number };
 };
@@ -80,6 +82,7 @@ export function AdminUserList({
   const [search, setSearch] = useState(currentSearch);
   const [roleFilter, setRoleFilter] = useState(currentRole);
   const [statusFilter, setStatusFilter] = useState(currentStatus);
+  const [signupModal, setSignupModal] = useState<{ code: string; name: string | null } | null>(null);
 
   function buildUrl(overrides: Record<string, string | undefined> = {}) {
     const params = new URLSearchParams();
@@ -178,9 +181,23 @@ export function AdminUserList({
                       </td>
                       {/* Status */}
                       <td className="whitespace-nowrap px-3 py-3">
-                        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_CLS[user.status] ?? ""}`}>
-                          {STATUS_LABEL[user.status] ?? user.status}
-                        </span>
+                        {user.status === "PENDING_SIGNUP" && user.signupCode ? (
+                          <button
+                            onClick={() =>
+                              setSignupModal({
+                                code: user.signupCode!,
+                                name: user.preferredDisplayName ?? user.name,
+                              })
+                            }
+                            className={`rounded-full px-2 py-0.5 text-xs font-medium underline decoration-dotted underline-offset-2 transition hover:brightness-125 ${STATUS_CLS[user.status]}`}
+                          >
+                            {STATUS_LABEL[user.status]}
+                          </button>
+                        ) : (
+                          <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_CLS[user.status] ?? ""}`}>
+                            {STATUS_LABEL[user.status] ?? user.status}
+                          </span>
+                        )}
                       </td>
                       {/* Credits */}
                       <td className={`px-3 py-3 tabular-nums font-medium ${credits >= 0 ? "text-emerald-400" : "text-red-400"}`}>
@@ -260,6 +277,13 @@ export function AdminUserList({
           </div>
         )}
       </div>
+      {signupModal && (
+        <SignupLinkModal
+          signupCode={signupModal.code}
+          userName={signupModal.name}
+          onClose={() => setSignupModal(null)}
+        />
+      )}
     </div>
   );
 }
