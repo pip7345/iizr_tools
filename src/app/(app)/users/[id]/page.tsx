@@ -106,7 +106,7 @@ export default async function UserProfilePage({
                   description: tx.description,
                   amount: tx.amount,
                   nominator: tx.nominator,
-                  isLinked: !!(tx.nomination || tx.invitationCreditGrant),
+                  isLinked: tx.status === "PENDING",
                 }))}
                 total={historyData.total}
                 page={safePage}

@@ -7,8 +7,8 @@ import {
   createInvitation,
   deleteInvitation,
   updateInvitation,
-} from "@/lib/db/invitations";
-import { createInvitationCreditGrant } from "@/lib/db/credits";
+} from "@/lib/db/users";
+import { createCreditNomination } from "@/lib/db/credits";
 import { invitationSchema, invitationCreditGrantSchema, updateInvitationSchema } from "@/lib/validation/schemas";
 
 import type { ActionState } from "@/actions/user-actions";
@@ -50,7 +50,7 @@ export async function updateInvitationAction(
   const user = await requireUser();
 
   const parsed = updateInvitationSchema.safeParse({
-    invitationId: formData.get("invitationId"),
+    userId: formData.get("userId"),
     name: formData.get("name"),
     email: formData.get("email"),
   });
@@ -64,7 +64,7 @@ export async function updateInvitationAction(
   }
 
   try {
-    await updateInvitation(parsed.data.invitationId, user.id, {
+    await updateInvitation(parsed.data.userId, user.id, {
       name: parsed.data.name,
       email: parsed.data.email,
     });
@@ -91,7 +91,7 @@ export async function addInvitationCreditAction(
   const user = await requireUser();
 
   const parsed = invitationCreditGrantSchema.safeParse({
-    invitationId: formData.get("invitationId"),
+    userId: formData.get("userId"),
     amount: formData.get("amount"),
     description: formData.get("description"),
   });
@@ -105,9 +105,9 @@ export async function addInvitationCreditAction(
   }
 
   try {
-    await createInvitationCreditGrant(
-      parsed.data.invitationId,
+    await createCreditNomination(
       user.id,
+      parsed.data.userId,
       parsed.data.amount,
       parsed.data.description,
     );

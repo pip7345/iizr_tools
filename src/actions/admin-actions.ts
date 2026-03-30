@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { UserRole } from "@prisma/client/index";
 
 import { requireAdmin, getRealUser, getRequestMeta } from "@/lib/auth/user";
-import { updateUserRole, updateUserSponsor, createUserFromInvitation } from "@/lib/db/users";
+import { updateUserRole, updateUserSponsor, createInvitation } from "@/lib/db/users";
 import {
   createAdminCreditTransaction,
   deleteAdminCreditTransaction,
@@ -13,14 +13,11 @@ import {
   approveNomination,
   approveNominationsBulk,
   rejectNomination,
-  approveInvitationCreditGrant,
-  rejectInvitationCreditGrant,
 } from "@/lib/db/credits";
 import {
   startImpersonation,
   endImpersonation,
 } from "@/lib/db/impersonation";
-import { createInvitation } from "@/lib/db/invitations";
 import { adminCreditSchema, adminUpdateCreditSchema, rejectionReasonSchema, adminInvitationSchema } from "@/lib/validation/schemas";
 
 import type { ActionState } from "@/actions/user-actions";
@@ -29,24 +26,6 @@ const IMPERSONATE_COOKIE = "iizr_impersonate_user_id";
 const IMPERSONATE_ADMIN_COOKIE = "iizr_impersonate_admin_id";
 
 // ─── Role Management ─────────────────────────────────────
-
-export async function adminCreateUserFromInvitationAction(
-  invitationId: string,
-): Promise<ActionState> {
-  await requireAdmin();
-
-  try {
-    await createUserFromInvitation(invitationId);
-  } catch (e) {
-    const message = e instanceof Error ? e.message : "Could not create user.";
-    return { status: "error", message };
-  }
-
-  revalidatePath("/dashboard");
-  revalidatePath("/admin/users");
-  revalidatePath("/admin/invitations");
-  return { status: "success", message: "User pre-registered successfully." };
-}
 
 export async function adminCreateInvitationAction(
   _prev: ActionState,
@@ -310,43 +289,4 @@ export async function rejectNominationAction(
 
   revalidatePath("/admin/nominations");
   return { status: "success", message: "Nomination rejected." };
-}
-
-// ─── Invitation Credit Approval ──────────────────────────
-
-export async function approveInvitationCreditAction(grantId: string): Promise<ActionState> {
-  const admin = await requireAdmin();
-
-  try {
-    await approveInvitationCreditGrant(grantId, admin.id);
-  } catch {
-    return { status: "error", message: "Could not approve invitation credit." };
-  }
-
-  revalidatePath("/admin/nominations");
-  return { status: "success", message: "Invitation credit approved." };
-}
-
-export async function rejectInvitationCreditAction(
-  grantId: string,
-  formData: FormData,
-): Promise<ActionState> {
-  const admin = await requireAdmin();
-
-  const parsed = rejectionReasonSchema.safeParse({
-    reason: formData.get("reason"),
-  });
-
-  if (!parsed.success) {
-    return { status: "error", message: "Rejection reason is required." };
-  }
-
-  try {
-    await rejectInvitationCreditGrant(grantId, admin.id, parsed.data.reason);
-  } catch {
-    return { status: "error", message: "Could not reject invitation credit." };
-  }
-
-  revalidatePath("/admin/nominations");
-  return { status: "success", message: "Invitation credit rejected." };
 }

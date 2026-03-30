@@ -6,7 +6,6 @@ import type { Route } from "next";
 
 import {
   adminCreateInvitationAction,
-  adminCreateUserFromInvitationAction,
 } from "@/actions/admin-actions";
 import type { ActionState } from "@/actions/user-actions";
 
@@ -19,13 +18,12 @@ type Sponsor = {
 
 type Invitation = {
   id: string;
-  name: string;
+  name: string | null;
   email: string | null;
   createdAt: Date;
-  referralCode: { code: string };
+  signupCode: string | null;
+  referralCode: string;
   sponsor: { id: string; name: string | null; email: string | null } | null;
-  userExists: boolean;
-  pendingUserId: string | null;
 };
 
 const INIT: ActionState = { status: "idle", message: "" };
@@ -63,41 +61,6 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
-function CreateUserCell({
-  invitationId,
-  initialExists,
-}: {
-  invitationId: string;
-  initialExists: boolean;
-}) {
-  const [exists, setExists] = useState(initialExists);
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  if (exists) {
-    return <span className="text-xs font-medium text-emerald-400">User created</span>;
-  }
-
-  return (
-    <div className="flex flex-col items-start gap-0.5">
-      <button
-        disabled={pending}
-        onClick={async () => {
-          setPending(true);
-          setError(null);
-          const r = await adminCreateUserFromInvitationAction(invitationId);
-          setPending(false);
-          if (r.status === "success") setExists(true);
-          else setError(r.message ?? null);
-        }}
-        className="text-xs font-medium text-[hsl(var(--primary))] hover:opacity-80 disabled:opacity-50"
-      >
-        {pending ? "Creating…" : "Create user"}
-      </button>
-      {error && <span className="text-xs text-red-400">{error}</span>}
-    </div>
-  );
-}
 function CreateForm({
   sponsors,
   onDone,
@@ -230,7 +193,7 @@ export function AdminInvitationsTable({
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[hsl(var(--border))] bg-[hsl(var(--muted)/0.2)]">
-              {["Invitee", "Email", "Sponsor", "Code", "Created", "User", ""].map((h) => (
+              {["Invitee", "Email", "Sponsor", "Code", "Created", ""].map((h) => (
                 <th
                   key={h}
                   className="px-3 py-2 text-left text-xs font-medium uppercase tracking-widest text-[hsl(var(--muted-foreground))] last:text-right"
@@ -242,20 +205,18 @@ export function AdminInvitationsTable({
           </thead>
           <tbody className="divide-y divide-[hsl(var(--border))]">
             {invitations.map((inv) => {
-              const referralUrl = `${appUrl}/api/referral?referral=${inv.referralCode.code}`;
+              const claimUrl = inv.signupCode
+                ? `${appUrl}/api/referral?claim=${inv.signupCode}`
+                : "";
               return (
                 <tr key={inv.id} className="hover:bg-[hsl(var(--muted)/0.2)]">
                   <td className="px-3 py-2 font-medium text-[hsl(var(--foreground))]">
-                    {inv.pendingUserId ? (
-                      <Link
-                        href={`/users/${inv.pendingUserId}` as Route}
-                        className="hover:text-[hsl(var(--primary))] hover:underline"
-                      >
-                        {inv.name}
-                      </Link>
-                    ) : (
-                      inv.name
-                    )}
+                    <Link
+                      href={`/users/${inv.id}` as Route}
+                      className="hover:text-[hsl(var(--primary))] hover:underline"
+                    >
+                      {inv.name}
+                    </Link>
                   </td>
                   <td className="px-3 py-2 text-[hsl(var(--muted-foreground))]">
                     {inv.email ?? <span className="opacity-40">—</span>}
@@ -265,20 +226,14 @@ export function AdminInvitationsTable({
                   </td>
                   <td className="px-3 py-2">
                     <code className="rounded bg-[hsl(var(--muted)/0.5)] px-1.5 py-0.5 font-mono text-xs">
-                      {inv.referralCode.code}
+                      {inv.referralCode}
                     </code>
                   </td>
                   <td className="whitespace-nowrap px-3 py-2 text-xs text-[hsl(var(--muted-foreground))]">
                     {formatDate(inv.createdAt)}
                   </td>
-                  <td className="px-3 py-2">
-                    <CreateUserCell
-                      invitationId={inv.id}
-                      initialExists={inv.userExists}
-                    />
-                  </td>
                   <td className="px-3 py-2 text-right">
-                    <CopyButton text={referralUrl} />
+                    {claimUrl && <CopyButton text={claimUrl} />}
                   </td>
                 </tr>
               );

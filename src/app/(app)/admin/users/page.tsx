@@ -14,7 +14,7 @@ export default async function AdminUsersPage({
   const params = await searchParams;
   const search = params.search ?? undefined;
   const role = params.role as "ADMIN" | "USER" | undefined;
-  const status = params.status as "ACTIVE" | "INACTIVE" | undefined;
+  const status = params.status as "ACTIVE" | "INACTIVE" | "PENDING_SIGNUP" | undefined;
 
   const users = await getAllUsers({
     search,

@@ -1,5 +1,5 @@
 import { requireUser } from "@/lib/auth/user";
-import { getInvitationsForSponsor } from "@/lib/db/invitations";
+import { getInvitationsForSponsor } from "@/lib/db/users";
 import { deleteInvitationAction } from "@/actions/invitation-actions";
 import { InvitationForm } from "@/components/invitations/invitation-form";
 import { InvitationCreditForm } from "@/components/invitations/invitation-credit-form";
@@ -39,8 +39,9 @@ export default async function InvitationsPage() {
           ) : (
             invitations.map((invitation) => {
               const deleteAction = deleteInvitationAction.bind(null, invitation.id);
-              const isPending = invitation.status === "PENDING";
-              const link = `${baseUrl}/sign-up?referral=${invitation.referralCode.code}`;
+              const link = invitation.signupCode
+                ? `${baseUrl}/api/referral?claim=${invitation.signupCode}`
+                : "";
 
               return (
                 <article
@@ -53,59 +54,47 @@ export default async function InvitationsPage() {
                         <h3 className="text-lg font-semibold text-[hsl(var(--foreground))]">
                           {invitation.name}
                         </h3>
-                        <span
-                          className={`rounded-full px-2 py-1 text-xs font-medium uppercase tracking-wider ${
-                            isPending
-                              ? "bg-amber-500/20 text-amber-400"
-                              : invitation.status === "CLAIMED"
-                                ? "bg-emerald-500/20 text-emerald-400"
-                                : "bg-red-500/20 text-red-400"
-                          }`}
-                        >
-                          {invitation.status.toLowerCase()}
+                        <span className="rounded-full bg-amber-500/20 px-2 py-1 text-xs font-medium uppercase tracking-wider text-amber-400">
+                          pending
                         </span>
                       </div>
-                      {isPending && (
-                        <form action={deleteAction}>
-                          <Button type="submit" variant="danger">
-                            Delete
-                          </Button>
-                        </form>
-                      )}
+                      <form action={deleteAction}>
+                        <Button type="submit" variant="danger">
+                          Delete
+                        </Button>
+                      </form>
                     </div>
                     <p className="text-sm text-[hsl(var(--muted-foreground))]">{invitation.email}</p>
-                    {isPending && (
+                    {link && (
                       <p className="break-all text-xs text-[hsl(var(--muted-foreground))]">{link}</p>
                     )}
                     <p className="text-xs text-[hsl(var(--muted-foreground))]">
                       Created {formatDate(invitation.createdAt)}
                     </p>
 
-                    {invitation.creditGrants.length > 0 && (
+                    {invitation.creditTransactions.length > 0 && (
                       <div className="mt-2 space-y-1">
                         <p className="text-xs font-medium uppercase tracking-wider text-[hsl(var(--muted-foreground))]">
                           Credit grants
                         </p>
-                        {invitation.creditGrants.map((grant) => (
+                        {invitation.creditTransactions.map((tx) => (
                           <div
-                            key={grant.id}
+                            key={tx.id}
                             className="flex items-center justify-between rounded-lg bg-[hsl(var(--muted))/0.3] px-3 py-2 text-sm"
                           >
-                            <span>{grant.description}</span>
+                            <span>{tx.description}</span>
                             <div className="flex items-center gap-2">
-                              <span className="font-medium">{grant.amount}</span>
+                              <span className="font-medium">{tx.amount}</span>
                               <span
                                 className={`rounded-full px-2 py-0.5 text-xs ${
-                                  grant.status === "APPROVED"
+                                  tx.status === "APPROVED"
                                     ? "bg-emerald-500/20 text-emerald-400"
-                                    : grant.status === "PENDING"
+                                    : tx.status === "PENDING"
                                       ? "bg-amber-500/20 text-amber-400"
-                                      : grant.status === "CONVERTED"
-                                        ? "bg-blue-500/20 text-blue-400"
-                                        : "bg-red-500/20 text-red-400"
+                                      : "bg-red-500/20 text-red-400"
                                 }`}
                               >
-                                {grant.status.toLowerCase()}
+                                {tx.status.toLowerCase()}
                               </span>
                             </div>
                           </div>
@@ -113,9 +102,7 @@ export default async function InvitationsPage() {
                       </div>
                     )}
 
-                    {isPending && (
-                      <InvitationCreditForm invitationId={invitation.id} />
-                    )}
+                    <InvitationCreditForm userId={invitation.id} />
                   </div>
                 </article>
               );

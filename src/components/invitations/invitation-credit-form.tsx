@@ -11,10 +11,10 @@ import { Input } from "@/components/ui/input";
 const initialState: ActionState = { status: "idle" };
 
 type InvitationCreditFormProps = {
-  invitationId: string;
+  userId: string;
 };
 
-export function InvitationCreditForm({ invitationId }: InvitationCreditFormProps) {
+export function InvitationCreditForm({ userId }: InvitationCreditFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction, pending] = useActionState(addInvitationCreditAction, initialState);
 
@@ -30,7 +30,7 @@ export function InvitationCreditForm({ invitationId }: InvitationCreditFormProps
       action={formAction}
       className="mt-3 flex flex-wrap items-end gap-2 rounded-lg border border-dashed border-[hsl(var(--border))] bg-[hsl(var(--muted))/0.3] p-3"
     >
-      <input type="hidden" name="invitationId" value={invitationId} />
+      <input type="hidden" name="userId" value={userId} />
       <div className="flex-1 space-y-1">
         <label className="text-xs text-[hsl(var(--muted-foreground))]">Amount</label>
         <Input name="amount" type="number" min="1" placeholder="100" required className="h-9" />

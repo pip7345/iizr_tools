@@ -1,8 +1,7 @@
 import { headers } from "next/headers";
 
 import { requireAdmin } from "@/lib/auth/user";
-import { getPendingInvitations } from "@/lib/db/invitations";
-import { getAllUsers } from "@/lib/db/users";
+import { getPendingInvitations, getAllUsers } from "@/lib/db/users";
 import { AdminInvitationsTable } from "@/components/admin/admin-invitations-table";
 
 export const metadata = { title: "Admin: Invitations" };
@@ -21,9 +20,8 @@ export default async function AdminInvitationsPage() {
     email: inv.email,
     createdAt: inv.createdAt,
     referralCode: inv.referralCode,
+    signupCode: inv.signupCode,
     sponsor: inv.sponsor ?? null,
-    userExists: inv.pendingUserId !== null,
-    pendingUserId: inv.pendingUserId ?? null,
   }));
 
   const sponsors = allUsers.map((u) => ({

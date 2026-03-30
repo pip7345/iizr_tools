@@ -1,6 +1,5 @@
 import { requireAdmin } from "@/lib/auth/user";
-import { getRootUsers } from "@/lib/db/users";
-import { getPendingInvitations } from "@/lib/db/invitations";
+import { getRootUsers, getPendingInvitations } from "@/lib/db/users";
 import { RecruitTree } from "@/components/hierarchy/recruit-tree";
 
 export const metadata = { title: "Admin: Full Hierarchy" };

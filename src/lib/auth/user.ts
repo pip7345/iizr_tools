@@ -4,13 +4,15 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { auth, currentUser } from "@clerk/nextjs/server";
-import { UserRole } from "@prisma/client/index";
+import { UserRole, UserStatus } from "@prisma/client/index";
 
 import { prisma } from "@/lib/db/prisma";
+import { uniqueReferralCode } from "@/lib/db/users";
 
 const IMPERSONATE_COOKIE = "iizr_impersonate_user_id";
 const IMPERSONATE_ADMIN_COOKIE = "iizr_impersonate_admin_id";
 const REFERRAL_COOKIE = "iizr_referral_code";
+const SIGNUP_COOKIE = "iizr_signup_code";
 
 async function syncUserFromClerk() {
   const clerkUser = await currentUser();
@@ -32,7 +34,7 @@ async function syncUserFromClerk() {
     clerkUser.username ||
     email.split("@")[0];
 
-  // 1. Check if user already exists by Clerk ID
+  // 1. Already linked by Clerk ID — just update name/email
   const existing = await prisma.user.findUnique({
     where: { clerkId: clerkUser.id },
   });
@@ -44,159 +46,67 @@ async function syncUserFromClerk() {
     });
   }
 
-  // 2. Check if a pre-registered user exists with this email (PENDING_SIGNUP)
+  // 2. Email match — a PENDING_SIGNUP user was created with this email
   const preRegistered = await prisma.user.findUnique({ where: { email } });
   if (preRegistered && preRegistered.clerkId === null) {
-    // Link this Clerk account to the pre-registered record
     return prisma.user.update({
       where: { id: preRegistered.id },
-      data: { clerkId: clerkUser.id, name: displayName, status: "ACTIVE" },
+      data: {
+        clerkId: clerkUser.id,
+        name: displayName,
+        status: UserStatus.ACTIVE,
+        signupCode: null,
+      },
     });
   }
 
-  // Read referral cookie once — used by both step 3 and step 4
   const cookieStore = await cookies();
-  const referralCode = cookieStore.get(REFERRAL_COOKIE)?.value;
 
-  // 3. Check if the referral code links to a pre-registered user via pendingUserId
-  //    This handles the case where the user was created without an email address.
-  if (referralCode) {
-    const code = await prisma.referralCode.findUnique({
-      where: { code: referralCode },
-      include: {
-        invitations: {
-          where: { status: "PENDING", pendingUserId: { not: null } },
-          include: { creditGrants: { where: { status: "APPROVED" } } },
-          take: 1,
+  // 3. Signup code match — invitation link was used (no email match)
+  const signupCode = cookieStore.get(SIGNUP_COOKIE)?.value;
+  if (signupCode) {
+    cookieStore.delete(SIGNUP_COOKIE);
+    const pending = await prisma.user.findUnique({ where: { signupCode } });
+    if (pending && pending.clerkId === null && pending.status === UserStatus.PENDING_SIGNUP) {
+      return prisma.user.update({
+        where: { id: pending.id },
+        data: {
+          clerkId: clerkUser.id,
+          email,
+          name: displayName,
+          status: UserStatus.ACTIVE,
+          signupCode: null,
         },
-      },
-    });
-
-    if (code && code.expiresAt > new Date() && code.invitations[0]?.pendingUserId) {
-      const inv = code.invitations[0];
-      const pending = await prisma.user.findUnique({ where: { id: inv.pendingUserId! } });
-
-      if (pending?.clerkId === null) {
-        const linked = await prisma.user.update({
-          where: { id: pending.id },
-          data: { clerkId: clerkUser.id, email, name: displayName, status: "ACTIVE" },
-        });
-
-        // Convert approved invitation credits to real transactions
-        for (const grant of inv.creditGrants) {
-          const transaction = await prisma.creditTransaction.create({
-            data: {
-              userId: linked.id,
-              amount: grant.amount,
-              description: `Converted from invitation: ${grant.description}`,
-              nominatorId: grant.nominatorId,
-              approverId: grant.approverId,
-            },
-          });
-          await prisma.invitationCreditGrant.update({
-            where: { id: grant.id },
-            data: { status: "CONVERTED", creditTransactionId: transaction.id },
-          });
-        }
-
-        await prisma.invitationCreditGrant.updateMany({
-          where: { invitationId: inv.id, status: "PENDING" },
-          data: { status: "VOIDED" },
-        });
-
-        await prisma.invitation.update({
-          where: { id: inv.id },
-          data: { status: "CLAIMED", claimedByUserId: linked.id },
-        });
-
-        cookieStore.delete(REFERRAL_COOKIE);
-        return linked;
-      }
+      });
     }
   }
 
-  // 4. New user: process referral code for sponsor assignment
+  // 4. Referral code — creates a brand-new user with a sponsor
+  const referralCode = cookieStore.get(REFERRAL_COOKIE)?.value;
   let sponsorId: string | undefined;
 
   if (referralCode) {
     cookieStore.delete(REFERRAL_COOKIE);
-
-    const code = await prisma.referralCode.findUnique({
-      where: { code: referralCode },
-      include: { user: true },
+    const sponsor = await prisma.user.findUnique({
+      where: { referralCode },
+      select: { id: true, status: true },
     });
-
-    if (code && code.expiresAt > new Date()) {
-      sponsorId = code.userId;
+    if (sponsor && sponsor.status === UserStatus.ACTIVE) {
+      sponsorId = sponsor.id;
     }
   }
 
-  const newUser = await prisma.user.create({
+  // 5. Create new user
+  const code = await uniqueReferralCode(displayName);
+  return prisma.user.create({
     data: {
       clerkId: clerkUser.id,
       email,
       name: displayName,
+      referralCode: code,
       sponsorId,
     },
   });
-
-  // 5. Claim any matching invitation for the new user
-  if (referralCode) {
-    const code = await prisma.referralCode.findUnique({
-      where: { code: referralCode },
-    });
-
-    if (code) {
-      const invitation = await prisma.invitation.findFirst({
-        where: {
-          referralCodeId: code.id,
-          status: "PENDING",
-        },
-        include: {
-          creditGrants: {
-            where: { status: "APPROVED" },
-          },
-        },
-      });
-
-      if (invitation) {
-        for (const grant of invitation.creditGrants) {
-          const transaction = await prisma.creditTransaction.create({
-            data: {
-              userId: newUser.id,
-              amount: grant.amount,
-              description: `Converted from invitation: ${grant.description}`,
-              nominatorId: grant.nominatorId,
-              approverId: grant.approverId,
-            },
-          });
-
-          await prisma.invitationCreditGrant.update({
-            where: { id: grant.id },
-            data: {
-              status: "CONVERTED",
-              creditTransactionId: transaction.id,
-            },
-          });
-        }
-
-        await prisma.invitationCreditGrant.updateMany({
-          where: { invitationId: invitation.id, status: "PENDING" },
-          data: { status: "VOIDED" },
-        });
-
-        await prisma.invitation.update({
-          where: { id: invitation.id },
-          data: {
-            status: "CLAIMED",
-            claimedByUserId: newUser.id,
-          },
-        });
-      }
-    }
-  }
-
-  return newUser;
 }
 
 export async function getUserOrNull() {

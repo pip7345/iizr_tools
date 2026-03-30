@@ -7,15 +7,13 @@ import {
   deleteInvitationAction,
   updateInvitationAction,
 } from "@/actions/invitation-actions";
-import { adminCreateUserFromInvitationAction } from "@/actions/admin-actions";
 import type { ActionState } from "@/actions/user-actions";
 
 type Invitation = {
   id: string;
-  name: string;
+  name: string | null;
   email: string | null;
-  referralCode: { code: string };
-  userExists: boolean;
+  signupCode: string | null;
 };
 
 const INIT: ActionState = { status: "idle", message: "" };
@@ -150,7 +148,7 @@ function EditRow({
     <tr className="bg-[hsl(var(--muted)/0.15)]">
       <td colSpan={4} className="px-5 py-3">
         <form action={formAction}>
-          <input type="hidden" name="invitationId" value={invitation.id} />
+          <input type="hidden" name="userId" value={invitation.id} />
           <div className="grid grid-cols-[1fr_1fr_auto] items-end gap-3">
             <div>
               <label className="mb-1 block text-xs font-medium text-[hsl(var(--muted-foreground))]">
@@ -160,7 +158,7 @@ function EditRow({
                 name="name"
                 type="text"
                 required
-                defaultValue={invitation.name}
+                defaultValue={invitation.name ?? ""}
                 className="w-full rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 py-1.5 text-sm text-[hsl(var(--foreground))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary)/0.5)]"
               />
               {state.errors?.name && (
@@ -219,29 +217,16 @@ function InvitationRow({
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [userCreated, setUserCreated] = useState(invitation.userExists);
-  const [creating, setCreating] = useState(false);
-  const [createError, setCreateError] = useState<string | null>(null);
 
-  const referralUrl = `${appUrl}/api/referral?referral=${invitation.referralCode.code}`;
+  const referralUrl = invitation.signupCode
+    ? `${appUrl}/api/referral?claim=${invitation.signupCode}`
+    : "";
 
   async function handleDelete() {
     setDeleting(true);
     await deleteInvitationAction(invitation.id);
     setDeleting(false);
     setConfirmDelete(false);
-  }
-
-  async function handleCreateUser() {
-    setCreating(true);
-    setCreateError(null);
-    const result = await adminCreateUserFromInvitationAction(invitation.id);
-    setCreating(false);
-    if (result.status === "success") {
-      setUserCreated(true);
-    } else {
-      setCreateError(result.message ?? null);
-    }
   }
 
   if (editing) {
@@ -258,19 +243,6 @@ function InvitationRow({
       <td className="px-5 py-3.5 text-right">
         <div className="flex flex-col items-end gap-1">
           <div className="inline-flex items-center gap-3">
-            {isAdmin && (
-              userCreated ? (
-                <span className="text-xs font-medium text-emerald-400">User created</span>
-              ) : (
-                <button
-                  onClick={handleCreateUser}
-                  disabled={creating}
-                  className="text-xs font-medium text-[hsl(var(--primary))] hover:opacity-80 disabled:opacity-50"
-                >
-                  {creating ? "Creating…" : "Create user"}
-                </button>
-              )
-            )}
             {confirmDelete ? (
               <span className="inline-flex items-center gap-2">
                 <span className="text-xs text-[hsl(var(--muted-foreground))]">Delete?</span>
@@ -305,7 +277,6 @@ function InvitationRow({
               </span>
             )}
           </div>
-          {createError && <p className="text-xs text-red-400">{createError}</p>}
         </div>
       </td>
     </tr>

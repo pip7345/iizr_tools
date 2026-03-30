@@ -96,7 +96,7 @@ export default async function CreditsPage() {
                     <div>
                       <p className="font-medium">{nom.description}</p>
                       <p className="text-xs text-[hsl(var(--muted-foreground))]">
-                        For {nom.user.name} · by {nom.nominator.name} · {formatDate(nom.createdAt)}
+                        For {nom.user.name} · by {nom.nominator?.name ?? "—"} · {formatDate(nom.createdAt)}
                       </p>
                       {nom.rejectionReason && (
                         <p className="mt-1 text-xs text-red-400">

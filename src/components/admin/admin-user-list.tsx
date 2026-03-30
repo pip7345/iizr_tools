@@ -95,6 +95,7 @@ export function AdminUserList({ users, currentAdminId, creditBalances }: AdminUs
           <option value="">All statuses</option>
           <option value="ACTIVE">Active</option>
           <option value="INACTIVE">Inactive</option>
+          <option value="PENDING_SIGNUP">Pending Signup</option>
         </select>
         <Button variant="secondary" onClick={applyFilters}>
           Filter
@@ -129,10 +130,12 @@ export function AdminUserList({ users, currentAdminId, creditBalances }: AdminUs
                     className={`rounded-full px-2 py-0.5 text-xs ${
                       user.status === "ACTIVE"
                         ? "bg-emerald-500/20 text-emerald-400"
-                        : "bg-red-500/20 text-red-400"
+                        : user.status === "PENDING_SIGNUP"
+                          ? "bg-amber-500/20 text-amber-400"
+                          : "bg-red-500/20 text-red-400"
                     }`}
                   >
-                    {user.status.toLowerCase()}
+                    {user.status.toLowerCase().replace("_", " ")}
                   </span>
                 </div>
                 <p className="text-sm text-[hsl(var(--muted-foreground))]">{

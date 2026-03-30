@@ -1,9 +1,7 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 import {
+  CreditStatus,
   ImpersonationSessionStatus,
-  InvitationCreditStatus,
-  InvitationStatus,
-  NominationStatus,
   PrismaClient,
   UserRole,
   UserStatus,
@@ -31,15 +29,13 @@ function referralCode(prefix: string) {
   return `${prefix.toUpperCase()}-DEMO`;
 }
 
+function signupCode(prefix: string) {
+  return `CLAIM-${prefix.toUpperCase()}-DEMO`;
+}
+
 function daysAgo(n: number) {
   const d = new Date();
   d.setDate(d.getDate() - n);
-  return d;
-}
-
-function daysFromNow(n: number) {
-  const d = new Date();
-  d.setDate(d.getDate() + n);
   return d;
 }
 
@@ -63,6 +59,7 @@ async function main() {
       location: "San Francisco, CA",
       role: UserRole.ADMIN,
       status: UserStatus.ACTIVE,
+      referralCode: referralCode("ALICE"),
       joinedAt: daysAgo(365),
       createdAt: daysAgo(365),
     },
@@ -77,6 +74,7 @@ async function main() {
         display: "bchen_demo",
         email: "bob.chen_demo@example.com",
         location: "Austin, TX",
+        refCode: "BOB",
       },
       {
         n: 3,
@@ -84,6 +82,7 @@ async function main() {
         display: "cdiaz_demo",
         email: "carmen.diaz_demo@example.com",
         location: "Miami, FL",
+        refCode: "CARM",
       },
       {
         n: 4,
@@ -91,8 +90,9 @@ async function main() {
         display: "dkim_demo",
         email: "david.kim_demo@example.com",
         location: "Seattle, WA",
+        refCode: "DAVE",
       },
-    ].map(({ n, name, display, email, location }) =>
+    ].map(({ n, name, display, email, location, refCode }) =>
       prisma.user.upsert({
         where: { clerkId: clerkId(n) },
         update: {},
@@ -105,6 +105,7 @@ async function main() {
           role: UserRole.USER,
           status: UserStatus.ACTIVE,
           sponsorId: admin.id,
+          referralCode: referralCode(refCode),
           joinedAt: daysAgo(300 - n * 10),
           createdAt: daysAgo(300 - n * 10),
         },
@@ -114,16 +115,16 @@ async function main() {
 
   // Tier-2 users (each sponsored by a tier-1)
   const tier2Defs = [
-    { n: 5,  name: "Eva Torres_demo",   display: "etorres_demo",   email: "eva.torres_demo@example.com",    location: "Denver, CO",     sponsorIdx: 0 },
-    { n: 6,  name: "Frank Lee_demo",    display: "flee_demo",      email: "frank.lee_demo@example.com",     location: "Chicago, IL",    sponsorIdx: 0 },
-    { n: 7,  name: "Grace Patel_demo",  display: "gpatel_demo",    email: "grace.patel_demo@example.com",   location: "Boston, MA",     sponsorIdx: 1 },
-    { n: 8,  name: "Henry Brown_demo",  display: "hbrown_demo",    email: "henry.brown_demo@example.com",   location: "Portland, OR",   sponsorIdx: 1 },
-    { n: 9,  name: "Isla Martin_demo",  display: "imartin_demo",   email: "isla.martin_demo@example.com",   location: "Nashville, TN",  sponsorIdx: 2 },
-    { n: 10, name: "Jake Wilson_demo",  display: "jwilson_demo",   email: "jake.wilson_demo@example.com",   location: "Phoenix, AZ",    sponsorIdx: 2 },
+    { n: 5,  name: "Eva Torres_demo",   display: "etorres_demo",   email: "eva.torres_demo@example.com",    location: "Denver, CO",     sponsorIdx: 0, refCode: "EVA" },
+    { n: 6,  name: "Frank Lee_demo",    display: "flee_demo",      email: "frank.lee_demo@example.com",     location: "Chicago, IL",    sponsorIdx: 0, refCode: "FRANK" },
+    { n: 7,  name: "Grace Patel_demo",  display: "gpatel_demo",    email: "grace.patel_demo@example.com",   location: "Boston, MA",     sponsorIdx: 1, refCode: "GRACE" },
+    { n: 8,  name: "Henry Brown_demo",  display: "hbrown_demo",    email: "henry.brown_demo@example.com",   location: "Portland, OR",   sponsorIdx: 1, refCode: "HENRY" },
+    { n: 9,  name: "Isla Martin_demo",  display: "imartin_demo",   email: "isla.martin_demo@example.com",   location: "Nashville, TN",  sponsorIdx: 2, refCode: "ISLA" },
+    { n: 10, name: "Jake Wilson_demo",  display: "jwilson_demo",   email: "jake.wilson_demo@example.com",   location: "Phoenix, AZ",    sponsorIdx: 2, refCode: "JAKE" },
   ];
 
   const tier2 = await Promise.all(
-    tier2Defs.map(({ n, name, display, email, location, sponsorIdx }) =>
+    tier2Defs.map(({ n, name, display, email, location, sponsorIdx, refCode }) =>
       prisma.user.upsert({
         where: { clerkId: clerkId(n) },
         update: {},
@@ -136,6 +137,7 @@ async function main() {
           role: UserRole.USER,
           status: UserStatus.ACTIVE,
           sponsorId: tier1[sponsorIdx].id,
+          referralCode: referralCode(refCode),
           joinedAt: daysAgo(200 - n * 5),
           createdAt: daysAgo(200 - n * 5),
         },
@@ -145,16 +147,16 @@ async function main() {
 
   // Tier-3 users (deeper tree)
   const tier3Defs = [
-    { n: 11, name: "Karen White_demo",   display: "kwhite_demo",   email: "karen.white_demo@example.com",   location: "Atlanta, GA",    sponsorIdx: 0 },
-    { n: 12, name: "Liam Nguyen_demo",   display: "lnguyen_demo",  email: "liam.nguyen_demo@example.com",   location: "Las Vegas, NV",  sponsorIdx: 1 },
-    { n: 13, name: "Mia Clark_demo",     display: "mclark_demo",   email: "mia.clark_demo@example.com",     location: "Houston, TX",    sponsorIdx: 2 },
-    { n: 14, name: "Noah Davis_demo",    display: "ndavis_demo",   email: "noah.davis_demo@example.com",    location: "New York, NY",   sponsorIdx: 3 },
-    { n: 15, name: "Olivia Scott_demo",  display: "oscott_demo",   email: "olivia.scott_demo@example.com",  location: "Charlotte, NC",  sponsorIdx: 4, status: UserStatus.INACTIVE },
-    { n: 16, name: "Paul Adams_demo",    display: "padams_demo",   email: "paul.adams_demo@example.com",    location: "Detroit, MI",    sponsorIdx: 5 },
+    { n: 11, name: "Karen White_demo",   display: "kwhite_demo",   email: "karen.white_demo@example.com",   location: "Atlanta, GA",    sponsorIdx: 0, refCode: "KAREN" },
+    { n: 12, name: "Liam Nguyen_demo",   display: "lnguyen_demo",  email: "liam.nguyen_demo@example.com",   location: "Las Vegas, NV",  sponsorIdx: 1, refCode: "LIAM" },
+    { n: 13, name: "Mia Clark_demo",     display: "mclark_demo",   email: "mia.clark_demo@example.com",     location: "Houston, TX",    sponsorIdx: 2, refCode: "MIA" },
+    { n: 14, name: "Noah Davis_demo",    display: "ndavis_demo",   email: "noah.davis_demo@example.com",    location: "New York, NY",   sponsorIdx: 3, refCode: "NOAH" },
+    { n: 15, name: "Olivia Scott_demo",  display: "oscott_demo",   email: "olivia.scott_demo@example.com",  location: "Charlotte, NC",  sponsorIdx: 4, status: UserStatus.INACTIVE, refCode: "OLIVIA" },
+    { n: 16, name: "Paul Adams_demo",    display: "padams_demo",   email: "paul.adams_demo@example.com",    location: "Detroit, MI",    sponsorIdx: 5, refCode: "PAUL" },
   ];
 
   const tier3 = await Promise.all(
-    tier3Defs.map(({ n, name, display, email, location, sponsorIdx, status }) =>
+    tier3Defs.map(({ n, name, display, email, location, sponsorIdx, status, refCode }) =>
       prisma.user.upsert({
         where: { clerkId: clerkId(n) },
         update: {},
@@ -167,6 +169,7 @@ async function main() {
           role: UserRole.USER,
           status: status ?? UserStatus.ACTIVE,
           sponsorId: tier2[sponsorIdx].id,
+          referralCode: referralCode(refCode),
           joinedAt: daysAgo(100 - n),
           createdAt: daysAgo(100 - n),
         },
@@ -177,214 +180,134 @@ async function main() {
   const allUsers = [admin, ...tier1, ...tier2, ...tier3];
   console.log(`  ✓ ${allUsers.length} users`);
 
-  // ── 2. Referral Codes ─────────────────────────────────────────────────
+  // ── 2. Pending Invitations (PENDING_SIGNUP users) ──────────────────────
 
-  const refCodeDefs = [
-    { user: admin,    prefix: "ALICE" },
-    { user: tier1[0], prefix: "BOB"   },
-    { user: tier1[1], prefix: "CARM"  },
-    { user: tier1[2], prefix: "DAVE"  },
-    { user: tier2[0], prefix: "EVA"   },
-    { user: tier2[1], prefix: "FRANK" },
-    { user: tier2[2], prefix: "GRACE" },
-    { user: tier2[3], prefix: "HENRY" },
-  ];
-
-  const refCodes = await Promise.all(
-    refCodeDefs.map(({ user, prefix }) =>
-      prisma.referralCode.upsert({
-        where: { code: referralCode(prefix) },
-        update: {},
-        create: {
-          code: referralCode(prefix),
-          userId: user.id,
-          expiresAt: daysFromNow(180),
-        },
-      })
-    )
-  );
-  console.log(`  ✓ ${refCodes.length} referral codes`);
-
-  // ── 3. Invitations ────────────────────────────────────────────────────
-
-  // Claimed invitation — tier2[0] (Eva) was invited by admin
-  const inv1 = await prisma.invitation.upsert({
-    where: { id: "inv_demo_001" },
+  const inv1 = await prisma.user.upsert({
+    where: { referralCode: referralCode("QUINN") },
     update: {},
     create: {
-      id: "inv_demo_001",
-      name: "Eva Torres_demo",
-      email: "eva.torres_demo@example.com",
-      sponsorId: admin.id,
-      referralCodeId: refCodes[0].id, // ALICE-DEMO
-      status: InvitationStatus.CLAIMED,
-      claimedByUserId: tier2[0].id,
-    },
-  });
-
-  // Pending invitation sent by Bob
-  const inv2 = await prisma.invitation.upsert({
-    where: { id: "inv_demo_002" },
-    update: {},
-    create: {
-      id: "inv_demo_002",
       name: "Quinn Reed_demo",
       email: "quinn.reed_demo@example.com",
       sponsorId: tier1[0].id,
-      referralCodeId: refCodes[1].id, // BOB-DEMO
-      status: InvitationStatus.PENDING,
+      status: UserStatus.PENDING_SIGNUP,
+      referralCode: referralCode("QUINN"),
+      signupCode: signupCode("QUINN"),
+      createdAt: daysAgo(15),
     },
   });
 
-  // Canceled invitation sent by Carmen
-  const inv3 = await prisma.invitation.upsert({
-    where: { id: "inv_demo_003" },
+  const inv2 = await prisma.user.upsert({
+    where: { referralCode: referralCode("SAM") },
     update: {},
     create: {
-      id: "inv_demo_003",
-      name: "Rachel Fox_demo",
-      email: "rachel.fox_demo@example.com",
-      sponsorId: tier1[1].id,
-      referralCodeId: refCodes[2].id, // CARM-DEMO
-      status: InvitationStatus.CANCELED,
-    },
-  });
-
-  // Claimed invitation — tier3[1] (Liam) invited by Frank
-  const inv4 = await prisma.invitation.upsert({
-    where: { id: "inv_demo_004" },
-    update: {},
-    create: {
-      id: "inv_demo_004",
-      name: "Liam Nguyen_demo",
-      email: "liam.nguyen_demo@example.com",
-      sponsorId: tier2[1].id,
-      referralCodeId: refCodes[5].id, // FRANK-DEMO
-      status: InvitationStatus.CLAIMED,
-      claimedByUserId: tier3[1].id,
-    },
-  });
-
-  // Two more pending invitations
-  const inv5 = await prisma.invitation.upsert({
-    where: { id: "inv_demo_005" },
-    update: {},
-    create: {
-      id: "inv_demo_005",
       name: "Sam Hayes_demo",
       email: "sam.hayes_demo@example.com",
       sponsorId: tier2[2].id,
-      referralCodeId: refCodes[6].id, // GRACE-DEMO
-      status: InvitationStatus.PENDING,
+      status: UserStatus.PENDING_SIGNUP,
+      referralCode: referralCode("SAM"),
+      signupCode: signupCode("SAM"),
+      createdAt: daysAgo(10),
     },
   });
 
-  const inv6 = await prisma.invitation.upsert({
-    where: { id: "inv_demo_006" },
+  const inv3 = await prisma.user.upsert({
+    where: { referralCode: referralCode("TINA") },
     update: {},
     create: {
-      id: "inv_demo_006",
       name: "Tina Brooks_demo",
       email: "tina.brooks_demo@example.com",
       sponsorId: tier1[2].id,
-      referralCodeId: refCodes[3].id, // DAVE-DEMO
-      status: InvitationStatus.PENDING,
+      status: UserStatus.PENDING_SIGNUP,
+      referralCode: referralCode("TINA"),
+      signupCode: signupCode("TINA"),
+      createdAt: daysAgo(8),
     },
   });
 
-  const invitations = [inv1, inv2, inv3, inv4, inv5, inv6];
-  console.log(`  ✓ ${invitations.length} invitations`);
+  const pendingInvitations = [inv1, inv2, inv3];
+  console.log(`  ✓ ${pendingInvitations.length} pending invitations (PENDING_SIGNUP users)`);
 
-  // ── 4. Credit Nominations + Transactions ──────────────────────────────
+  // ── 3. Credit Transactions ────────────────────────────────────────────
 
   // Approved nomination: admin nominates Bob for 100 credits
-  const nom1tx = await prisma.creditTransaction.upsert({
+  await prisma.creditTransaction.upsert({
     where: { id: "ctx_demo_001" },
     update: {},
     create: {
       id: "ctx_demo_001",
       userId: tier1[0].id,
       amount: 100,
-      description: "Approved nomination: Community contribution",
+      description: "Community contribution",
+      category: "nomination",
+      status: CreditStatus.APPROVED,
       nominatorId: admin.id,
       approverId: admin.id,
       createdAt: daysAgo(60),
     },
   });
 
-  const nom1 = await prisma.creditNomination.upsert({
-    where: { id: "nom_demo_001" },
-    update: {},
-    create: {
-      id: "nom_demo_001",
-      userId: tier1[0].id,
-      nominatorId: admin.id,
-      amount: 100,
-      description: "Community contribution",
-      status: NominationStatus.APPROVED,
-      approverId: admin.id,
-      creditTransactionId: nom1tx.id,
-      createdAt: daysAgo(62),
-    },
-  });
-
   // Approved nomination: Bob nominates Eva for 50 credits
-  const nom2tx = await prisma.creditTransaction.upsert({
+  await prisma.creditTransaction.upsert({
     where: { id: "ctx_demo_002" },
     update: {},
     create: {
       id: "ctx_demo_002",
       userId: tier2[0].id,
       amount: 50,
-      description: "Approved nomination: Referral milestone",
+      description: "Referral milestone",
+      category: "nomination",
+      status: CreditStatus.APPROVED,
       nominatorId: tier1[0].id,
       approverId: admin.id,
       createdAt: daysAgo(45),
     },
   });
 
-  const nom2 = await prisma.creditNomination.upsert({
-    where: { id: "nom_demo_002" },
+  // Approved invitation credit: admin gets 25 credits for Eva joining
+  await prisma.creditTransaction.upsert({
+    where: { id: "ctx_demo_003" },
     update: {},
     create: {
-      id: "nom_demo_002",
-      userId: tier2[0].id,
-      nominatorId: tier1[0].id,
-      amount: 50,
-      description: "Referral milestone",
-      status: NominationStatus.APPROVED,
+      id: "ctx_demo_003",
+      userId: admin.id,
+      amount: 25,
+      description: "Invitation credit: Eva Torres_demo joined",
+      category: "invitation-credit",
+      status: CreditStatus.APPROVED,
+      nominatorId: admin.id,
       approverId: admin.id,
-      creditTransactionId: nom2tx.id,
-      createdAt: daysAgo(47),
+      createdAt: daysAgo(55),
     },
   });
 
   // Pending nomination: Carmen nominates Grace for 75 credits
-  const nom3 = await prisma.creditNomination.upsert({
-    where: { id: "nom_demo_003" },
+  await prisma.creditTransaction.upsert({
+    where: { id: "ctx_demo_004" },
     update: {},
     create: {
-      id: "nom_demo_003",
+      id: "ctx_demo_004",
       userId: tier2[2].id,
-      nominatorId: tier1[1].id,
       amount: 75,
       description: "Outstanding recruit activity",
-      status: NominationStatus.PENDING,
+      category: "nomination",
+      status: CreditStatus.PENDING,
+      nominatorId: tier1[1].id,
       createdAt: daysAgo(10),
     },
   });
 
   // Rejected nomination: David nominates Jake for 200 credits
-  const nom4 = await prisma.creditNomination.upsert({
-    where: { id: "nom_demo_004" },
+  await prisma.creditTransaction.upsert({
+    where: { id: "ctx_demo_005" },
     update: {},
     create: {
-      id: "nom_demo_004",
+      id: "ctx_demo_005",
       userId: tier2[5].id,
-      nominatorId: tier1[2].id,
       amount: 200,
       description: "Special recognition",
-      status: NominationStatus.REJECTED,
+      category: "nomination",
+      status: CreditStatus.REJECTED,
+      nominatorId: tier1[2].id,
       approverId: admin.id,
       rejectionReason: "Amount exceeds monthly cap for new members.",
       createdAt: daysAgo(30),
@@ -392,89 +315,40 @@ async function main() {
   });
 
   // Pending nomination: Eva nominates Karen
-  const nom5 = await prisma.creditNomination.upsert({
-    where: { id: "nom_demo_005" },
+  await prisma.creditTransaction.upsert({
+    where: { id: "ctx_demo_006" },
     update: {},
     create: {
-      id: "nom_demo_005",
+      id: "ctx_demo_006",
       userId: tier3[0].id,
-      nominatorId: tier2[0].id,
       amount: 40,
       description: "Active engagement bonus",
-      status: NominationStatus.PENDING,
+      category: "nomination",
+      status: CreditStatus.PENDING,
+      nominatorId: tier2[0].id,
       createdAt: daysAgo(5),
     },
   });
 
-  const nominations = [nom1, nom2, nom3, nom4, nom5];
-  console.log(`  ✓ ${nominations.length} credit nominations`);
-
-  // ── 5. Invitation Credit Grants ───────────────────────────────────────
-
-  // Approved grant for inv1 (Eva's claimed invitation)
-  const icgTx1 = await prisma.creditTransaction.upsert({
-    where: { id: "ctx_demo_003" },
+  // Pending invitation credit for Liam joining (nominated by admin)
+  await prisma.creditTransaction.upsert({
+    where: { id: "ctx_demo_007" },
     update: {},
     create: {
-      id: "ctx_demo_003",
-      userId: admin.id, // sponsor receives the credit
-      amount: 25,
-      description: "Invitation credit: Eva Torres_demo joined",
-      nominatorId: admin.id,
-      approverId: admin.id,
-      createdAt: daysAgo(55),
-    },
-  });
-
-  const icg1 = await prisma.invitationCreditGrant.upsert({
-    where: { id: "icg_demo_001" },
-    update: {},
-    create: {
-      id: "icg_demo_001",
-      invitationId: inv1.id,
-      amount: 25,
-      description: "Sponsor reward for Eva Torres_demo joining",
-      nominatorId: admin.id,
-      approverId: admin.id,
-      status: InvitationCreditStatus.APPROVED,
-      creditTransactionId: icgTx1.id,
-    },
-  });
-
-  // Pending grant for inv4 (Liam's claimed invitation)
-  const icg2 = await prisma.invitationCreditGrant.upsert({
-    where: { id: "icg_demo_002" },
-    update: {},
-    create: {
-      id: "icg_demo_002",
-      invitationId: inv4.id,
+      id: "ctx_demo_007",
+      userId: tier2[1].id,
       amount: 25,
       description: "Sponsor reward for Liam Nguyen_demo joining",
+      category: "invitation-credit",
+      status: CreditStatus.PENDING,
       nominatorId: admin.id,
-      status: InvitationCreditStatus.PENDING,
+      createdAt: daysAgo(12),
     },
   });
 
-  // Rejected grant for inv3 (canceled invitation)
-  const icg3 = await prisma.invitationCreditGrant.upsert({
-    where: { id: "icg_demo_003" },
-    update: {},
-    create: {
-      id: "icg_demo_003",
-      invitationId: inv3.id,
-      amount: 25,
-      description: "Sponsor reward for Rachel Fox_demo (invitation canceled)",
-      nominatorId: admin.id,
-      approverId: admin.id,
-      status: InvitationCreditStatus.REJECTED,
-      rejectionReason: "Invitation was canceled before the recruit joined.",
-    },
-  });
+  console.log("  ✓ 7 credit transactions");
 
-  const grants = [icg1, icg2, icg3];
-  console.log(`  ✓ ${grants.length} invitation credit grants`);
-
-  // ── 6. Impersonation Sessions ─────────────────────────────────────────
+  // ── 4. Impersonation Sessions ─────────────────────────────────────────
 
   // Ended session: admin impersonated Bob
   const imp1 = await prisma.impersonationSession.upsert({

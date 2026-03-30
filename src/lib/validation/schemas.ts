@@ -39,13 +39,13 @@ export const rejectionReasonSchema = z.object({
 });
 
 export const invitationCreditGrantSchema = z.object({
-  invitationId: z.string().min(1),
+  userId: z.string().min(1),
   amount: z.coerce.number().int().positive("Amount must be a positive integer"),
   description: z.string().min(1, "Description is required").max(500).trim(),
 });
 
 export const updateInvitationSchema = z.object({
-  invitationId: z.string().min(1),
+  userId: z.string().min(1),
   name: z.string().min(1, "Name is required").max(120).trim(),
   email: z.email("Invalid email address").optional().or(z.literal("")),
 });

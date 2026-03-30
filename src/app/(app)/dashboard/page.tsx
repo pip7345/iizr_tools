@@ -3,11 +3,9 @@ import type { Route } from "next";
 
 import { requireUser } from "@/lib/auth/user";
 import { getCreditBalance, getCreditBalances, getCreditHistoryPage } from "@/lib/db/credits";
-import { getRecruitsTree, getUserById } from "@/lib/db/users";
-import { getOrCreateReferralCode } from "@/lib/db/referral-codes";
+import { getRecruitsTree, getUserById, getInvitationsForSponsor } from "@/lib/db/users";
 import { UserRole } from "@prisma/client/index";
 import { RecruitTree } from "@/components/hierarchy/recruit-tree";
-import { getInvitationsForSponsor } from "@/lib/db/invitations";
 import { ProfileSidebarCard } from "@/components/profile/profile-sidebar-card";
 import { PendingInvitationsSection } from "@/components/invitations/pending-invitations-section";
 
@@ -26,11 +24,10 @@ export default async function DashboardPage({
   const sp = await searchParams;
   const page = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);
 
-  const [creditBalance, myRecruits, referralCode, invitations, userWithSponsor, historyData] =
+  const [creditBalance, myRecruits, invitations, userWithSponsor, historyData] =
     await Promise.all([
       getCreditBalance(user.id),
       getRecruitsTree(user.id),
-      getOrCreateReferralCode(user.id),
       getInvitationsForSponsor(user.id),
       getUserById(user.id),
       getCreditHistoryPage(user.id, page, PAGE_SIZE),
@@ -46,19 +43,18 @@ export default async function DashboardPage({
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
   const referralCodeProp = {
-    code: referralCode.code,
-    url: `${appUrl}/api/referral?referral=${referralCode.code}`,
+    code: user.referralCode,
+    url: `${appUrl}/api/referral?referral=${user.referralCode}`,
   };
 
-  const pendingInvitations = invitations.filter((i) => i.status === "PENDING");
+  const pendingInvitations = invitations;
   const isAdmin = user.role === UserRole.ADMIN;
 
   const pendingInvitationProps = pendingInvitations.map((i) => ({
     id: i.id,
     name: i.name,
     email: i.email,
-    referralCode: { code: i.referralCode.code },
-    userExists: i.pendingUserId !== null,
+    signupCode: i.signupCode,
   }));
   const totalPages = Math.max(1, Math.ceil(historyData.total / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);

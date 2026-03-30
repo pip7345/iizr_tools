@@ -2,18 +2,17 @@ import Link from "next/link";
 
 import { requireAdmin } from "@/lib/auth/user";
 import { getUserStats } from "@/lib/db/users";
-import { getPendingNominations, getAllPendingInvitationCredits } from "@/lib/db/credits";
-import { getPendingInvitations } from "@/lib/db/invitations";
+import { getPendingNominations } from "@/lib/db/credits";
+import { getPendingInvitations } from "@/lib/db/users";
 
 export const metadata = { title: "Admin" };
 
 export default async function AdminPage() {
   await requireAdmin();
 
-  const [stats, pendingNominations, pendingInvCredits, pendingInvitations] = await Promise.all([
+  const [stats, pendingNominations, pendingInvitations] = await Promise.all([
     getUserStats(),
     getPendingNominations(),
-    getAllPendingInvitationCredits(),
     getPendingInvitations(),
   ]);
 
@@ -44,7 +43,7 @@ export default async function AdminPage() {
         <article className="rounded-lg border border-[hsl(var(--border))] card-gradient p-6 shadow-sm">
           <p className="text-xs uppercase tracking-[0.24em] text-[hsl(var(--muted-foreground))]">Pending approvals</p>
           <p className="mt-3 text-4xl font-semibold text-amber-400">
-            {pendingNominations.length + pendingInvCredits.length}
+            {pendingNominations.length}
           </p>
         </article>
       </div>
@@ -65,7 +64,7 @@ export default async function AdminPage() {
         >
           <h2 className="text-lg font-semibold text-[hsl(var(--foreground))]">Credit nominations</h2>
           <p className="mt-2 text-sm text-[hsl(var(--muted-foreground))]">
-            {pendingNominations.length} pending nomination{pendingNominations.length === 1 ? "" : "s"} · {pendingInvCredits.length} pending invitation credit{pendingInvCredits.length === 1 ? "" : "s"}
+            {pendingNominations.length} pending nomination{pendingNominations.length === 1 ? "" : "s"}
           </p>
         </Link>
         <Link

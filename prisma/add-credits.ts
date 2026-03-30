@@ -13,7 +13,7 @@
  */
 
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "@prisma/client";
+import { CreditStatus, PrismaClient } from "@prisma/client";
 import { loadEnvConfig } from "@next/env";
 
 loadEnvConfig(process.cwd());
@@ -45,7 +45,7 @@ async function main() {
   let totalCreated = 0;
 
   for (const user of users) {
-    const entries: { userId: string; amount: number; description: string; nominatorId: string; approverId: string }[] = [];
+    const entries: { userId: string; amount: number; description: string; nominatorId: string; approverId: string; category: string; status: CreditStatus }[] = [];
 
     // 1 credit for attendance
     entries.push({
@@ -54,6 +54,8 @@ async function main() {
       description: "Attendance",
       nominatorId: admin.id,
       approverId: admin.id,
+      category: "admin",
+      status: CreditStatus.APPROVED,
     });
 
     // 2 credits per direct recruit
@@ -64,6 +66,8 @@ async function main() {
         description: `Recruiting – ${recruit.preferredDisplayName ?? recruit.name ?? recruit.email}`,
         nominatorId: admin.id,
         approverId: admin.id,
+        category: "admin",
+        status: CreditStatus.APPROVED,
       });
     }
 
