@@ -22,6 +22,7 @@ export async function nominateCreditAction(
     userId: formData.get("userId"),
     amount: formData.get("amount"),
     description: formData.get("description"),
+    category: formData.get("category") || undefined,
   });
 
   if (!parsed.success) {
@@ -44,6 +45,7 @@ export async function nominateCreditAction(
       parsed.data.userId,
       parsed.data.amount,
       parsed.data.description,
+      parsed.data.category,
     );
   } catch {
     return { status: "error", message: "Could not create nomination." };

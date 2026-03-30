@@ -1,15 +1,17 @@
 import { requireAdmin } from "@/lib/auth/user";
 import { getRootUsers, getPendingInvitations } from "@/lib/db/users";
+import { getCreditCategories } from "@/lib/db/credits";
 import { RecruitTree } from "@/components/hierarchy/recruit-tree";
 
 export const metadata = { title: "Admin: Full Hierarchy" };
 
 export default async function AdminHierarchyPage() {
-  await requireAdmin();
+  const admin = await requireAdmin();
 
-  const [rootUsers, pendingInvitations] = await Promise.all([
+  const [rootUsers, pendingInvitations, categories] = await Promise.all([
     getRootUsers(),
     getPendingInvitations(),
+    getCreditCategories(),
   ]);
 
   return (
@@ -30,7 +32,12 @@ export default async function AdminHierarchyPage() {
         {rootUsers.length === 0 ? (
           <p className="text-sm text-[hsl(var(--muted-foreground))]">No users in the system.</p>
         ) : (
-          <RecruitTree recruits={rootUsers} />
+          <RecruitTree
+            recruits={rootUsers}
+            viewerCurrentUserId={admin.id}
+            viewerIsAdmin
+            categories={categories}
+          />
         )}
       </div>
 

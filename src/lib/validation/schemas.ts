@@ -8,13 +8,13 @@ export const updateProfileSchema = z.object({
 
 export const invitationSchema = z.object({
   name: z.string().min(1, "Name is required").max(120).trim(),
-  email: z.email("Invalid email address").optional().or(z.literal("")),
 });
 
 export const creditNominationSchema = z.object({
   userId: z.string().min(1, "User is required"),
   amount: z.coerce.number().int().positive("Amount must be a positive integer"),
   description: z.string().min(1, "Description is required").max(500).trim(),
+  category: z.string().max(100).trim().optional(),
 });
 
 export const spendCreditsSchema = z.object({
@@ -26,6 +26,7 @@ export const adminCreditSchema = z.object({
   userId: z.string().min(1, "User is required"),
   amount: z.coerce.number().int().refine((n) => n !== 0, "Amount cannot be zero"),
   description: z.string().min(1, "Description is required").max(500).trim(),
+  category: z.string().max(100).trim().optional(),
 });
 
 export const adminUpdateCreditSchema = z.object({
@@ -47,11 +48,9 @@ export const invitationCreditGrantSchema = z.object({
 export const updateInvitationSchema = z.object({
   userId: z.string().min(1),
   name: z.string().min(1, "Name is required").max(120).trim(),
-  email: z.email("Invalid email address").optional().or(z.literal("")),
 });
 
 export const adminInvitationSchema = z.object({
   sponsorId: z.string().min(1, "Sponsor is required"),
   name: z.string().min(1, "Name is required").max(120).trim(),
-  email: z.email("Invalid email address").optional().or(z.literal("")),
 });

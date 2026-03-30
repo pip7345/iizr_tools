@@ -77,6 +77,44 @@ export async function getAllUsers(filters?: {
   });
 }
 
+export async function getUsersPage(
+  filters: {
+    role?: UserRole;
+    status?: UserStatus;
+    search?: string;
+  },
+  page: number,
+  pageSize = 25,
+) {
+  const where = {
+    ...(filters.role && { role: filters.role }),
+    ...(filters.status && { status: filters.status }),
+    ...(filters.search && {
+      OR: [
+        { name: { contains: filters.search, mode: "insensitive" as const } },
+        { email: { contains: filters.search, mode: "insensitive" as const } },
+        { preferredDisplayName: { contains: filters.search, mode: "insensitive" as const } },
+      ],
+    }),
+  };
+
+  const [users, total] = await Promise.all([
+    prisma.user.findMany({
+      where,
+      include: {
+        sponsor: { select: { id: true, name: true, email: true } },
+        _count: { select: { recruits: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.user.count({ where }),
+  ]);
+
+  return { users, total, totalPages: Math.max(1, Math.ceil(total / pageSize)) };
+}
+
 export async function getEligibleSponsors(excludeUserId: string) {
   return prisma.user.findMany({
     where: {
@@ -144,6 +182,7 @@ export async function getRecruitsTree(userId: string) {
       preferredDisplayName: true,
       role: true,
       status: true,
+      sponsorId: true,
       joinedAt: true,
       _count: { select: { recruits: true } },
     },

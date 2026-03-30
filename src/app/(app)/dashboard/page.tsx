@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Route } from "next";
 
 import { requireUser } from "@/lib/auth/user";
-import { getCreditBalance, getCreditBalances, getCreditHistoryPage } from "@/lib/db/credits";
+import { getCreditBalance, getCreditBalances, getCreditCategories, getCreditHistoryPage } from "@/lib/db/credits";
 import { getRecruitsTree, getUserById, getInvitationsForSponsor } from "@/lib/db/users";
 import { UserRole } from "@prisma/client/index";
 import { RecruitTree } from "@/components/hierarchy/recruit-tree";
@@ -24,13 +24,14 @@ export default async function DashboardPage({
   const sp = await searchParams;
   const page = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);
 
-  const [creditBalance, myRecruits, invitations, userWithSponsor, historyData] =
+  const [creditBalance, myRecruits, invitations, userWithSponsor, historyData, categories] =
     await Promise.all([
       getCreditBalance(user.id),
       getRecruitsTree(user.id),
       getInvitationsForSponsor(user.id),
       getUserById(user.id),
       getCreditHistoryPage(user.id, page, PAGE_SIZE),
+      getCreditCategories(),
     ]);
 
   const treeBalances = await getCreditBalances(myRecruits.map((r) => r.id));
@@ -215,7 +216,13 @@ export default async function DashboardPage({
               </div>
             ) : (
               <div className="rounded-lg border border-[hsl(var(--border))] card-gradient p-6 shadow-sm">
-                <RecruitTree recruits={treeRecruits} viewerCanNominate />
+                <RecruitTree
+                recruits={treeRecruits}
+                viewerCurrentUserId={user.id}
+                viewerIsAdmin={isAdmin}
+                viewerCanNominate
+                categories={categories}
+              />
               </div>
             )}
           </div>

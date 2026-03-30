@@ -1,9 +1,11 @@
 import { requireAdmin } from "@/lib/auth/user";
-import { getAllUsers } from "@/lib/db/users";
-import { getCreditBalances } from "@/lib/db/credits";
+import { getUsersPage } from "@/lib/db/users";
+import { getCreditBalances, getCreditCategories } from "@/lib/db/credits";
 import { AdminUserList } from "@/components/admin/admin-user-list";
 
 export const metadata = { title: "Admin: Users" };
+
+const PAGE_SIZE = 25;
 
 export default async function AdminUsersPage({
   searchParams,
@@ -12,17 +14,22 @@ export default async function AdminUsersPage({
 }) {
   const admin = await requireAdmin();
   const params = await searchParams;
+
   const search = params.search ?? undefined;
   const role = params.role as "ADMIN" | "USER" | undefined;
   const status = params.status as "ACTIVE" | "INACTIVE" | "PENDING_SIGNUP" | undefined;
+  const page = Math.max(1, parseInt(params.page ?? "1", 10) || 1);
 
-  const users = await getAllUsers({
-    search,
-    role: role || undefined,
-    status: status || undefined,
-  });
+  const { users, total, totalPages } = await getUsersPage(
+    { search, role, status },
+    page,
+    PAGE_SIZE,
+  );
 
-  const creditBalances = await getCreditBalances(users.map((u) => u.id));
+  const [creditBalances, categories] = await Promise.all([
+    getCreditBalances(users.map((u) => u.id)),
+    getCreditCategories(),
+  ]);
 
   return (
     <div className="grid gap-8">
@@ -35,7 +42,18 @@ export default async function AdminUsersPage({
         </h1>
       </section>
 
-      <AdminUserList users={users} currentAdminId={admin.id} creditBalances={creditBalances} />
+      <AdminUserList
+        users={users}
+        currentAdminId={admin.id}
+        creditBalances={creditBalances}
+        categories={categories}
+        page={page}
+        totalPages={totalPages}
+        total={total}
+        currentSearch={search ?? ""}
+        currentRole={role ?? ""}
+        currentStatus={status ?? ""}
+      />
     </div>
   );
 }

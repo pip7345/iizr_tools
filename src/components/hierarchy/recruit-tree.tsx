@@ -1,122 +1,84 @@
 "use client";
 
-import { useState, useActionState, useEffect } from "react";
+import { Fragment, useState } from "react";
 import Link from "next/link";
 import type { Route } from "next";
 
-import { nominateCreditAction } from "@/actions/credit-actions";
-import type { ActionState } from "@/actions/user-actions";
-import { FormMessage } from "@/components/ui/form-message";
+import {
+  UserActionsCell,
+  type CreditCategoryOption,
+} from "@/components/ui/user-actions-cell";
 
-type Recruit = {
+export type Recruit = {
   id: string;
   name: string | null;
   email: string | null;
   preferredDisplayName: string | null;
   role: string;
   status: string;
+  sponsorId?: string | null;
   joinedAt: Date;
   creditBalance?: number;
   _count: { recruits: number };
 };
 
-type RecruitTreeProps = {
+export type RecruitTreeProps = {
   recruits: Recruit[];
+  /** ID of the currently logged-in user */
+  viewerCurrentUserId: string;
+  /** Viewer has full admin powers — show admin action dropdown on every row */
+  viewerIsAdmin?: boolean;
+  /**
+   * Viewer is the direct sponsor of the top-level list.
+   * Used to enable "Nominate credits" on top-level rows for non-admin viewers.
+   */
   viewerCanNominate?: boolean;
+  categories: CreditCategoryOption[];
 };
 
-const initialState: ActionState = { status: "idle" };
+const STATUS_CLS: Record<string, string> = {
+  ACTIVE: "bg-emerald-500/20 text-emerald-400",
+  INACTIVE: "bg-red-500/20 text-red-400",
+  PENDING_SIGNUP: "bg-amber-500/20 text-amber-400",
+};
+const STATUS_LABEL: Record<string, string> = {
+  ACTIVE: "Active",
+  INACTIVE: "Inactive",
+  PENDING_SIGNUP: "Pending signup",
+};
 
-function NominateForm({ userId, onClose }: { userId: string; onClose: () => void }) {
-  const [state, formAction, pending] = useActionState(nominateCreditAction, initialState);
-
-  useEffect(() => {
-    if (state.status === "success") onClose();
-  }, [state.status, onClose]);
-
-  return (
-    <form
-      action={formAction}
-      className="mt-2 ml-8 space-y-3 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--muted))/0.3] px-4 py-3"
-    >
-      <input type="hidden" name="userId" value={userId} />
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-[hsl(var(--muted-foreground))]">Amount</label>
-          <input
-            name="amount"
-            type="number"
-            min="1"
-            required
-            className="h-8 w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 text-sm outline-none focus:border-[hsl(var(--primary))] focus:ring-2 focus:ring-[hsl(var(--primary))/0.2]"
-          />
-          {state.errors?.amount && (
-            <p className="text-xs text-red-600">{state.errors.amount[0]}</p>
-          )}
-        </div>
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-[hsl(var(--muted-foreground))]">Reason</label>
-          <input
-            name="description"
-            required
-            placeholder="Reason for tokens"
-            className="h-8 w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 text-sm outline-none focus:border-[hsl(var(--primary))] focus:ring-2 focus:ring-[hsl(var(--primary))/0.2]"
-          />
-          {state.errors?.description && (
-            <p className="text-xs text-red-600">{state.errors.description[0]}</p>
-          )}
-        </div>
-      </div>
-      {state.status === "error" && <FormMessage message={state.message} tone="error" />}
-      <div className="flex items-center gap-3">
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded-lg bg-[hsl(var(--primary))] px-3 py-1 text-xs font-medium text-white transition hover:opacity-90 disabled:opacity-50"
-        >
-          {pending ? "Submitting…" : "Nominate"}
-        </button>
-        <button
-          type="button"
-          onClick={onClose}
-          className="text-xs text-[hsl(var(--muted-foreground))] transition hover:text-[hsl(var(--foreground))]"
-        >
-          Cancel
-        </button>
-      </div>
-    </form>
-  );
-}
-
-function RecruitNode({
-  recruit,
-  viewerCanNominate,
-}: {
+type RecruitRowProps = {
   recruit: Recruit;
-  viewerCanNominate?: boolean;
-}) {
+  depth: number;
+  viewerCurrentUserId: string;
+  viewerIsAdmin: boolean;
+  /** True only for top-level rows when viewerCanNominate and viewer is not admin */
+  isDirectSponsoree: boolean;
+  categories: CreditCategoryOption[];
+};
+
+function RecruitRow({
+  recruit,
+  depth,
+  viewerCurrentUserId,
+  viewerIsAdmin,
+  isDirectSponsoree,
+  categories,
+}: RecruitRowProps) {
   const [expanded, setExpanded] = useState(false);
   const [children, setChildren] = useState<Recruit[] | null>(null);
   const [loading, setLoading] = useState(false);
-  const [nominating, setNominating] = useState(false);
+
   const hasChildren = recruit._count.recruits > 0;
 
   async function toggle() {
     if (!hasChildren) return;
-
-    if (expanded) {
-      setExpanded(false);
-      return;
-    }
-
+    if (expanded) { setExpanded(false); return; }
     if (!children) {
       setLoading(true);
       try {
         const res = await fetch(`/api/recruits/${recruit.id}`);
-        if (res.ok) {
-          const data = await res.json();
-          setChildren(data);
-        }
+        if (res.ok) setChildren(await res.json());
       } finally {
         setLoading(false);
       }
@@ -125,73 +87,126 @@ function RecruitNode({
   }
 
   const balance = recruit.creditBalance ?? 0;
+  const displayName =
+    recruit.preferredDisplayName ?? recruit.name ?? recruit.email ?? recruit.id;
+
+  const actionMode = viewerIsAdmin ? "admin" : isDirectSponsoree ? "sponsor" : "none";
 
   return (
-    <li className="space-y-1">
-      <div className="flex flex-wrap items-center gap-2">
-        {hasChildren ? (
-          <button
-            onClick={toggle}
-            className="flex h-6 w-6 shrink-0 items-center justify-center rounded text-xs text-[hsl(var(--muted-foreground))] transition hover:bg-[hsl(var(--muted))/0.5]"
-          >
-            {loading ? "…" : expanded ? "▾" : "▸"}
-          </button>
-        ) : (
-          <span className="inline-block w-6 shrink-0 text-center text-xs text-[hsl(var(--muted-foreground))/0.5]">·</span>
-        )}
-        <Link
-          href={`/users/${recruit.id}` as Route}
-          className="font-medium text-[hsl(var(--foreground))] hover:text-[hsl(var(--primary))] hover:underline"
-        >
-          {recruit.preferredDisplayName ?? recruit.name ?? recruit.email}
-        </Link>
-        <span
-          className={`rounded-full px-2 py-0.5 text-xs font-medium tabular-nums ${
-            balance >= 0 ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"
-          }`}
-        >
-          {balance >= 0 ? "+" : ""}
-          {balance} cr
-        </span>
-        <span className="rounded-full bg-[hsl(var(--muted))/0.5] px-2 py-0.5 text-xs text-[hsl(var(--muted-foreground))]">
-          {recruit._count.recruits} recruit{recruit._count.recruits === 1 ? "" : "s"}
-        </span>
-        <span
-          className={`rounded-full px-2 py-0.5 text-xs ${
-            recruit.status === "ACTIVE" ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"
-          }`}
-        >
-          {recruit.status.toLowerCase()}
-        </span>
-        {viewerCanNominate && !nominating && (
-          <button
-            onClick={() => setNominating(true)}
-            className="rounded-full border border-[hsl(var(--primary))/0.3] bg-[hsl(var(--primary))/0.05] px-2 py-0.5 text-xs font-medium text-[hsl(var(--primary))] transition hover:bg-[hsl(var(--primary))/0.15]"
-          >
-            + nominate tokens
-          </button>
-        )}
-      </div>
-      {nominating && (
-        <NominateForm userId={recruit.id} onClose={() => setNominating(false)} />
-      )}
-      {expanded && children && children.length > 0 && (
-        <ul className="ml-6 space-y-1 border-l border-[hsl(var(--border))] pl-2">
-          {children.map((child) => (
-            <RecruitNode key={child.id} recruit={child} viewerCanNominate={viewerCanNominate} />
-          ))}
-        </ul>
-      )}
-    </li>
-  );
-}
+    <Fragment>
+      <tr className="border-b border-[hsl(var(--border)/0.5)] transition-colors hover:bg-[hsl(var(--muted)/0.15)]">
+        {/* Name + expand toggle */}
+        <td className="px-3 py-2.5">
+          <div className="flex items-center gap-1.5" style={{ paddingLeft: `${depth * 20}px` }}>
+            {hasChildren ? (
+              <button
+                onClick={toggle}
+                className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-[10px] text-[hsl(var(--muted-foreground))] transition hover:bg-[hsl(var(--muted)/0.5)]"
+              >
+                {loading ? "…" : expanded ? "▾" : "▸"}
+              </button>
+            ) : (
+              <span className="inline-block w-5 shrink-0 text-center text-[10px] text-[hsl(var(--muted-foreground)/0.4)]">·</span>
+            )}
+            <Link
+              href={`/users/${recruit.id}` as Route}
+              className="font-medium text-[hsl(var(--foreground))] hover:text-[hsl(var(--primary))] hover:underline"
+            >
+              {displayName}
+            </Link>
+            {recruit.role === "ADMIN" && (
+              <span className="rounded-full bg-[hsl(var(--primary)/0.15)] px-1.5 py-0.5 text-[10px] font-medium text-[hsl(var(--primary))]">
+                admin
+              </span>
+            )}
+          </div>
+        </td>
 
-export function RecruitTree({ recruits, viewerCanNominate }: RecruitTreeProps) {
-  return (
-    <ul className="space-y-1">
-      {recruits.map((recruit) => (
-        <RecruitNode key={recruit.id} recruit={recruit} viewerCanNominate={viewerCanNominate} />
+        {/* Status */}
+        <td className="px-3 py-2.5">
+          <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_CLS[recruit.status] ?? "bg-[hsl(var(--muted)/0.4)] text-[hsl(var(--muted-foreground))]"}`}>
+            {STATUS_LABEL[recruit.status] ?? recruit.status}
+          </span>
+        </td>
+
+        {/* Credits */}
+        <td className="px-3 py-2.5 tabular-nums">
+          <span className={`text-sm font-medium ${balance >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+            {balance >= 0 ? "+" : ""}{balance}
+          </span>
+        </td>
+
+        {/* Recruit count */}
+        <td className="px-3 py-2.5 text-sm text-[hsl(var(--muted-foreground))]">
+          {recruit._count.recruits}
+        </td>
+
+        {/* Actions */}
+        <td className="px-3 py-2.5 text-right">
+          <UserActionsCell
+            user={recruit}
+            viewerCurrentUserId={viewerCurrentUserId}
+            mode={actionMode}
+            categories={categories}
+          />
+        </td>
+      </tr>
+
+      {expanded && children && children.length > 0 && children.map((child) => (
+        <RecruitRow
+          key={child.id}
+          recruit={child}
+          depth={depth + 1}
+          viewerCurrentUserId={viewerCurrentUserId}
+          viewerIsAdmin={viewerIsAdmin}
+          isDirectSponsoree={false}
+          categories={categories}
+        />
       ))}
-    </ul>
+    </Fragment>
   );
 }
+
+export function RecruitTree({
+  recruits,
+  viewerCurrentUserId,
+  viewerIsAdmin = false,
+  viewerCanNominate = false,
+  categories,
+}: RecruitTreeProps) {
+  if (recruits.length === 0) return null;
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-[hsl(var(--border))] bg-[hsl(var(--muted)/0.2)]">
+            {(["Name", "Status", "Credits", "Recruits", "Actions"] as const).map((label) => (
+              <th
+                key={label}
+                className={`px-3 py-2.5 text-xs font-medium uppercase tracking-widest text-[hsl(var(--muted-foreground))] ${label === "Actions" ? "text-right" : "text-left"}`}
+              >
+                {label}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {recruits.map((recruit) => (
+            <RecruitRow
+              key={recruit.id}
+              recruit={recruit}
+              depth={0}
+              viewerCurrentUserId={viewerCurrentUserId}
+              viewerIsAdmin={viewerIsAdmin}
+              isDirectSponsoree={!viewerIsAdmin && viewerCanNominate}
+              categories={categories}
+            />
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+

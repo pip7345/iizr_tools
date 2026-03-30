@@ -4,7 +4,7 @@ import type { Route } from "next";
 
 import { getRealUser, requireUser } from "@/lib/auth/user";
 import { getUserPublicProfile, getRecruitsTree } from "@/lib/db/users";
-import { getCreditBalance, getCreditBalances, getCreditHistoryPage } from "@/lib/db/credits";
+import { getCreditBalance, getCreditBalances, getCreditCategories, getCreditHistoryPage } from "@/lib/db/credits";
 import { ProfileSidebarCard } from "@/components/profile/profile-sidebar-card";
 import { RecruitTree } from "@/components/hierarchy/recruit-tree";
 import { AdminCreditHistorySection } from "@/components/admin/admin-user-credit-controls";
@@ -30,10 +30,11 @@ export default async function UserProfilePage({
   const { id } = await params;
   const sp = await searchParams;
 
-  const [user, balance, recruits] = await Promise.all([
+  const [user, balance, recruits, categories] = await Promise.all([
     getUserPublicProfile(id),
     getCreditBalance(id),
     getRecruitsTree(id),
+    getCreditCategories(),
   ]);
 
   if (!user) notFound();
@@ -233,7 +234,13 @@ export default async function UserProfilePage({
               </div>
             ) : (
               <div className="rounded-lg border border-[hsl(var(--border))] card-gradient p-6 shadow-sm">
-                <RecruitTree recruits={enrichedRecruits} viewerCanNominate={viewerCanNominate} />
+                <RecruitTree
+                recruits={enrichedRecruits}
+                viewerCurrentUserId={currentUser.id}
+                viewerIsAdmin={isAdmin}
+                viewerCanNominate={viewerCanNominate}
+                categories={categories}
+              />
               </div>
             )}
           </section>

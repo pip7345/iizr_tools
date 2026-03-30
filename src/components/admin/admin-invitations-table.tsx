@@ -85,7 +85,7 @@ function CreateForm({
 
   return (
     <form ref={formRef} action={formAction}>
-      <div className="grid grid-cols-[1fr_1fr_1fr_auto] items-end gap-3 border-b border-[hsl(var(--border))] bg-[hsl(var(--muted)/0.15)] px-4 py-3">
+      <div className="grid grid-cols-[1fr_1fr_auto] items-end gap-3 border-b border-[hsl(var(--border))] bg-[hsl(var(--muted)/0.15)] px-4 py-3">
         {/* Sponsor */}
         <div>
           <label className="mb-1 block text-xs font-medium text-[hsl(var(--muted-foreground))]">
@@ -113,16 +113,6 @@ function CreateForm({
             <p className="mt-0.5 text-xs text-red-400">{state.errors.name[0]}</p>
           )}
         </div>
-        {/* Email */}
-        <div>
-          <label className="mb-1 block text-xs font-medium text-[hsl(var(--muted-foreground))]">
-            Email <span className="font-normal opacity-60">(optional)</span>
-          </label>
-          <input name="email" type="email" placeholder="jane@example.com" className={inputCls} />
-          {state.errors?.email && (
-            <p className="mt-0.5 text-xs text-red-400">{state.errors.email[0]}</p>
-          )}
-        </div>
         {/* Buttons */}
         <div className="flex gap-2">
           <button
@@ -141,7 +131,7 @@ function CreateForm({
           </button>
         </div>
         {state.status === "error" && !Object.keys(state.errors ?? {}).length && (
-          <p className="col-span-4 text-xs text-red-400">{state.message}</p>
+          <p className="col-span-3 text-xs text-red-400">{state.message}</p>
         )}
       </div>
     </form>

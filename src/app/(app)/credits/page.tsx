@@ -1,5 +1,5 @@
 import { requireUser } from "@/lib/auth/user";
-import { getCreditBalance, getCreditHistory, getNominationsForUser } from "@/lib/db/credits";
+import { getCreditBalance, getCreditCategories, getCreditHistory, getNominationsForUser } from "@/lib/db/credits";
 import { SpendCreditsForm } from "@/components/credits/spend-credits-form";
 import { NominateCreditForm } from "@/components/credits/nominate-credit-form";
 import { getRecruitsTree } from "@/lib/db/users";
@@ -13,11 +13,12 @@ function formatDate(date: Date) {
 export default async function CreditsPage() {
   const user = await requireUser();
 
-  const [balance, history, nominations, recruits] = await Promise.all([
+  const [balance, history, nominations, recruits, categories] = await Promise.all([
     getCreditBalance(user.id),
     getCreditHistory(user.id),
     getNominationsForUser(user.id),
     getRecruitsTree(user.id),
+    getCreditCategories(),
   ]);
 
   return (
@@ -39,7 +40,7 @@ export default async function CreditsPage() {
         <div className="grid gap-6">
           <SpendCreditsForm balance={balance} />
           {recruits.length > 0 && (
-            <NominateCreditForm recruits={recruits} />
+            <NominateCreditForm recruits={recruits} categories={categories} />
           )}
         </div>
 

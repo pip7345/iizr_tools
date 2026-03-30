@@ -6,11 +6,9 @@ import Link from "next/link";
 import type { Route } from "next";
 
 import {
-  grantAdminAction,
-  revokeAdminAction,
-  startImpersonationAction,
-  reassignSponsorAction,
-} from "@/actions/admin-actions";
+  UserActionsCell,
+  type CreditCategoryOption,
+} from "@/components/ui/user-actions-cell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -31,168 +29,238 @@ type AdminUserListProps = {
   users: UserRow[];
   currentAdminId: string;
   creditBalances: Record<string, number>;
+  categories: CreditCategoryOption[];
+  page: number;
+  totalPages: number;
+  total: number;
+  currentSearch: string;
+  currentRole: string;
+  currentStatus: string;
 };
 
-export function AdminUserList({ users, currentAdminId, creditBalances }: AdminUserListProps) {
+const STATUS_LABEL: Record<string, string> = {
+  ACTIVE: "Active",
+  INACTIVE: "Inactive",
+  PENDING_SIGNUP: "Pending Signup",
+};
+const STATUS_CLS: Record<string, string> = {
+  ACTIVE: "bg-emerald-500/20 text-emerald-400",
+  INACTIVE: "bg-red-500/20 text-red-400",
+  PENDING_SIGNUP: "bg-amber-500/20 text-amber-400",
+};
+
+// ─── Pagination helper ────────────────────────────────────
+
+function paginationPages(current: number, total: number): (number | null)[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const delta = 2;
+  const pages: (number | null)[] = [1];
+  const start = Math.max(2, current - delta);
+  const end = Math.min(total - 1, current + delta);
+  if (start > 2) pages.push(null);
+  for (let p = start; p <= end; p++) pages.push(p);
+  if (end < total - 1) pages.push(null);
+  pages.push(total);
+  return pages;
+}
+
+export function AdminUserList({
+  users,
+  currentAdminId,
+  creditBalances,
+  categories,
+  page,
+  totalPages,
+  total,
+  currentSearch,
+  currentRole,
+  currentStatus,
+}: AdminUserListProps) {
   const router = useRouter();
-  const [search, setSearch] = useState("");
-  const [roleFilter, setRoleFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [search, setSearch] = useState(currentSearch);
+  const [roleFilter, setRoleFilter] = useState(currentRole);
+  const [statusFilter, setStatusFilter] = useState(currentStatus);
+
+  function buildUrl(overrides: Record<string, string | undefined> = {}) {
+    const params = new URLSearchParams();
+    const s = overrides.search ?? search;
+    const r = overrides.role ?? roleFilter;
+    const st = overrides.status ?? statusFilter;
+    const p = overrides.page ?? "1";
+    if (s) params.set("search", s);
+    if (r) params.set("role", r);
+    if (st) params.set("status", st);
+    if (p !== "1") params.set("page", p);
+    const qs = params.toString();
+    return `/admin/users${qs ? `?${qs}` : ""}` as Route;
+  }
 
   function applyFilters() {
-    const params = new URLSearchParams();
-    if (search) params.set("search", search);
-    if (roleFilter) params.set("role", roleFilter);
-    if (statusFilter) params.set("status", statusFilter);
-    router.push(`/admin/users?${params.toString()}` as Route);
+    router.push(buildUrl({ page: "1" }));
   }
 
-  async function handleGrantAdmin(userId: string) {
-    await grantAdminAction(userId);
-    router.refresh();
+  function goToPage(p: number) {
+    router.push(buildUrl({ page: String(p) }));
   }
 
-  async function handleRevokeAdmin(userId: string) {
-    await revokeAdminAction(userId);
-    router.refresh();
-  }
-
-  async function handleImpersonate(userId: string) {
-    await startImpersonationAction(userId);
-    router.push("/dashboard");
-    router.refresh();
-  }
-
-  async function handleRemoveSponsor(userId: string) {
-    await reassignSponsorAction(userId, null);
-    router.refresh();
-  }
+  const selectCls =
+    "h-9 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 text-sm text-[hsl(var(--foreground))]";
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-3">
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-2">
         <Input
           placeholder="Search name or email..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="max-w-xs"
           onKeyDown={(e) => e.key === "Enter" && applyFilters()}
+          className="h-9 max-w-xs"
         />
-        <select
-          value={roleFilter}
-          onChange={(e) => setRoleFilter(e.target.value)}
-          className="h-11 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 text-sm"
-        >
+        <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} className={selectCls}>
           <option value="">All roles</option>
           <option value="ADMIN">Admin</option>
           <option value="USER">User</option>
         </select>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="h-11 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 text-sm"
-        >
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className={selectCls}>
           <option value="">All statuses</option>
           <option value="ACTIVE">Active</option>
           <option value="INACTIVE">Inactive</option>
           <option value="PENDING_SIGNUP">Pending Signup</option>
         </select>
-        <Button variant="secondary" onClick={applyFilters}>
+        <Button variant="secondary" onClick={applyFilters} className="h-9">
           Filter
         </Button>
       </div>
 
-      <div className="space-y-3">
-        {users.map((user) => (
-          <article
-            key={user.id}
-            className="rounded-lg border border-[hsl(var(--border))] card-gradient p-5 shadow-sm"
-          >
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <Link
-                    href={`/users/${user.id}` as Route}
-                    className="text-base font-semibold text-[hsl(var(--foreground))] hover:text-[hsl(var(--primary))] hover:underline"
-                  >
-                    {user.preferredDisplayName ?? user.name ?? user.email ?? user.id}
-                  </Link>
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                      user.role === "ADMIN"
-                        ? "bg-purple-500/20 text-purple-400"
-                        : "bg-[hsl(var(--muted))/0.5] text-[hsl(var(--muted-foreground))]"
-                    }`}
-                  >
-                    {user.role.toLowerCase()}
-                  </span>
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-xs ${
-                      user.status === "ACTIVE"
-                        ? "bg-emerald-500/20 text-emerald-400"
-                        : user.status === "PENDING_SIGNUP"
-                          ? "bg-amber-500/20 text-amber-400"
-                          : "bg-red-500/20 text-red-400"
-                    }`}
-                  >
-                    {user.status.toLowerCase().replace("_", " ")}
-                  </span>
-                </div>
-                <p className="text-sm text-[hsl(var(--muted-foreground))]">{
-user.email ?? <span className="opacity-40 italic">no email</span>}</p>
-                <div className="flex flex-wrap gap-3 text-xs text-[hsl(var(--muted-foreground))]">
-                  <span>{user._count.recruits} recruit{user._count.recruits === 1 ? "" : "s"}</span>
-                  <span className={(creditBalances[user.id] ?? 0) >= 0 ? "text-emerald-400 font-medium" : "text-red-400 font-medium"}>
-                    {(creditBalances[user.id] ?? 0) >= 0 ? "+" : ""}{(creditBalances[user.id] ?? 0).toLocaleString()} credits
-                  </span>
-                  {user.sponsor && (
-                    <span>
-                      Sponsor:{" "}
-                      <Link
-                        href={`/users/${user.sponsor.id}` as Route}
-                        className="hover:text-[hsl(var(--primary))] hover:underline"
-                      >
-                        {user.sponsor.name ?? user.sponsor.email ?? user.sponsor.id}
-                      </Link>
-                    </span>
-                  )}
-                  {!user.sponsor && <span>No sponsor</span>}
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                {user.id !== currentAdminId && (
-                  <>
-                    {user.role === "USER" ? (
-                      <Button variant="secondary" onClick={() => handleGrantAdmin(user.id)} className="text-xs">
-                        Grant admin
-                      </Button>
-                    ) : (
-                      <Button variant="ghost" onClick={() => handleRevokeAdmin(user.id)} className="text-xs">
-                        Revoke admin
-                      </Button>
-                    )}
-                    <Button variant="secondary" onClick={() => handleImpersonate(user.id)} className="text-xs">
-                      Impersonate
-                    </Button>
-                    {user.sponsorId && (
-                      <Button variant="ghost" onClick={() => handleRemoveSponsor(user.id)} className="text-xs">
-                        Remove sponsor
-                      </Button>
-                    )}
-                  </>
-                )}
-              </div>
-            </div>
-          </article>
-        ))}
-
-        {users.length === 0 && (
-          <div className="rounded-lg border border-dashed border-[hsl(var(--border))] bg-[hsl(var(--card))/0.7] p-8 text-center text-sm text-[hsl(var(--muted-foreground))]">
+      {/* Table */}
+      <div className="overflow-hidden rounded-lg border border-[hsl(var(--border))] card-gradient shadow-sm">
+        {users.length === 0 ? (
+          <div className="px-4 py-10 text-center text-sm text-[hsl(var(--muted-foreground))]">
             No users match the current filters.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-[hsl(var(--border))] bg-[hsl(var(--muted)/0.2)]">
+                  {["Name", "Status", "Credits", "Recruits", "Sponsor", "Actions"].map((h, i) => (
+                    <th
+                      key={h}
+                      className={`px-3 py-2.5 text-xs font-medium uppercase tracking-widest text-[hsl(var(--muted-foreground))] ${i === 5 ? "text-right" : "text-left"}`}
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[hsl(var(--border))]">
+                {users.map((user) => {
+                  const displayName = user.preferredDisplayName ?? user.name ?? user.email ?? user.id;
+                  const credits = creditBalances[user.id] ?? 0;
+                  return (
+                    <tr key={user.id} className="hover:bg-[hsl(var(--muted)/0.15)]">
+                      {/* Name */}
+                      <td className="px-3 py-3">
+                        <div className="flex items-center gap-2">
+                          <Link
+                            href={`/users/${user.id}` as Route}
+                            className="font-medium text-[hsl(var(--foreground))] hover:text-[hsl(var(--primary))] hover:underline"
+                          >
+                            {displayName}
+                          </Link>
+                          {user.role === "ADMIN" && (
+                            <span className="rounded-full bg-purple-500/20 px-2 py-0.5 text-xs font-medium text-purple-400">
+                              admin
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      {/* Status */}
+                      <td className="whitespace-nowrap px-3 py-3">
+                        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_CLS[user.status] ?? ""}`}>
+                          {STATUS_LABEL[user.status] ?? user.status}
+                        </span>
+                      </td>
+                      {/* Credits */}
+                      <td className={`px-3 py-3 tabular-nums font-medium ${credits >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                        {credits >= 0 ? "+" : ""}{credits.toLocaleString()}
+                      </td>
+                      {/* Recruits */}
+                      <td className="px-3 py-3 tabular-nums text-[hsl(var(--muted-foreground))]">
+                        {user._count.recruits}
+                      </td>
+                      {/* Sponsor */}
+                      <td className="px-3 py-3 text-[hsl(var(--muted-foreground))]">
+                        {user.sponsor ? (
+                          <Link
+                            href={`/users/${user.sponsor.id}` as Route}
+                            className="hover:text-[hsl(var(--primary))] hover:underline"
+                          >
+                            {user.sponsor.name ?? user.sponsor.email ?? user.sponsor.id}
+                          </Link>
+                        ) : (
+                          <span className="opacity-40">—</span>
+                        )}
+                      </td>
+                      {/* Actions */}
+                      <td className="px-3 py-3 text-right">
+                        <UserActionsCell
+                          user={user}
+                          viewerCurrentUserId={currentAdminId}
+                          mode="admin"
+                          categories={categories}
+                        />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Pagination */}
+      <div className="flex items-center justify-between text-sm text-[hsl(var(--muted-foreground))]">
+        <span>{total} user{total !== 1 ? "s" : ""}</span>
+        {totalPages > 1 && (
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => goToPage(page - 1)}
+              disabled={page <= 1}
+              className="rounded border border-[hsl(var(--border))] px-2.5 py-1 text-xs hover:border-[hsl(var(--primary)/0.5)] hover:text-[hsl(var(--foreground))] disabled:opacity-40"
+            >
+              Prev
+            </button>
+            {paginationPages(page, totalPages).map((p, i) =>
+              p === null ? (
+                <span key={`ellipsis-${i}`} className="px-1 text-xs opacity-40">…</span>
+              ) : (
+                <button
+                  key={p}
+                  onClick={() => goToPage(p)}
+                  className={`rounded border px-2.5 py-1 text-xs ${
+                    p === page
+                      ? "border-[hsl(var(--primary)/0.5)] bg-[hsl(var(--primary)/0.1)] text-[hsl(var(--primary))]"
+                      : "border-[hsl(var(--border))] hover:border-[hsl(var(--primary)/0.5)] hover:text-[hsl(var(--foreground))]"
+                  }`}
+                >
+                  {p}
+                </button>
+              )
+            )}
+            <button
+              onClick={() => goToPage(page + 1)}
+              disabled={page >= totalPages}
+              className="rounded border border-[hsl(var(--border))] px-2.5 py-1 text-xs hover:border-[hsl(var(--primary)/0.5)] hover:text-[hsl(var(--foreground))] disabled:opacity-40"
+            >
+              Next
+            </button>
           </div>
         )}
       </div>
     </div>
   );
 }
+

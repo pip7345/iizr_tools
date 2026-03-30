@@ -73,7 +73,7 @@ function CreateForm({
 
   return (
     <form ref={formRef} action={formAction}>
-      <div className="grid grid-cols-[1fr_1fr_auto] items-end gap-3 rounded-lg border border-dashed border-[hsl(var(--border))] bg-[hsl(var(--muted)/0.2)] p-4">
+      <div className="grid grid-cols-[1fr_auto] items-end gap-3 rounded-lg border border-dashed border-[hsl(var(--border))] bg-[hsl(var(--muted)/0.2)] p-4">
         <div>
           <label className="mb-1 block text-xs font-medium text-[hsl(var(--muted-foreground))]">
             Name
@@ -87,20 +87,6 @@ function CreateForm({
           />
           {state.errors?.name && (
             <p className="mt-1 text-xs text-red-400">{state.errors.name[0]}</p>
-          )}
-        </div>
-        <div>
-          <label className="mb-1 block text-xs font-medium text-[hsl(var(--muted-foreground))]">
-            Email <span className="font-normal opacity-60">(optional)</span>
-          </label>
-          <input
-            name="email"
-            type="email"
-            placeholder="jane@example.com"
-            className="w-full rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 py-1.5 text-sm text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary)/0.5)]"
-          />
-          {state.errors?.email && (
-            <p className="mt-1 text-xs text-red-400">{state.errors.email[0]}</p>
           )}
         </div>
         <div className="flex gap-2">
@@ -120,7 +106,7 @@ function CreateForm({
           </button>
         </div>
         {state.status === "error" && (
-          <p className="col-span-3 text-xs text-red-400">{state.message}</p>
+          <p className="col-span-2 text-xs text-red-400">{state.message}</p>
         )}
       </div>
     </form>
@@ -149,7 +135,7 @@ function EditRow({
       <td colSpan={4} className="px-5 py-3">
         <form action={formAction}>
           <input type="hidden" name="userId" value={invitation.id} />
-          <div className="grid grid-cols-[1fr_1fr_auto] items-end gap-3">
+          <div className="grid grid-cols-[1fr_auto] items-end gap-3">
             <div>
               <label className="mb-1 block text-xs font-medium text-[hsl(var(--muted-foreground))]">
                 Name
@@ -163,20 +149,6 @@ function EditRow({
               />
               {state.errors?.name && (
                 <p className="mt-1 text-xs text-red-400">{state.errors.name[0]}</p>
-              )}
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-[hsl(var(--muted-foreground))]">
-                Email <span className="font-normal opacity-60">(optional)</span>
-              </label>
-              <input
-                name="email"
-                type="email"
-                defaultValue={invitation.email ?? ""}
-                className="w-full rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 py-1.5 text-sm text-[hsl(var(--foreground))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary)/0.5)]"
-              />
-              {state.errors?.email && (
-                <p className="mt-1 text-xs text-red-400">{state.errors.email[0]}</p>
               )}
             </div>
             <div className="flex gap-2">

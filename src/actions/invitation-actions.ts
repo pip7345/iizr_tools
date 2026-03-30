@@ -21,7 +21,6 @@ export async function createInvitationAction(
 
   const parsed = invitationSchema.safeParse({
     name: formData.get("name"),
-    email: formData.get("email"),
   });
 
   if (!parsed.success) {
@@ -33,7 +32,7 @@ export async function createInvitationAction(
   }
 
   try {
-    await createInvitation(user.id, parsed.data);
+    await createInvitation(user.id, { name: parsed.data.name });
   } catch {
     return { status: "error", message: "Could not create invitation." };
   }
@@ -52,7 +51,6 @@ export async function updateInvitationAction(
   const parsed = updateInvitationSchema.safeParse({
     userId: formData.get("userId"),
     name: formData.get("name"),
-    email: formData.get("email"),
   });
 
   if (!parsed.success) {
@@ -66,7 +64,6 @@ export async function updateInvitationAction(
   try {
     await updateInvitation(parsed.data.userId, user.id, {
       name: parsed.data.name,
-      email: parsed.data.email,
     });
   } catch {
     return { status: "error", message: "Could not update invitation." };

@@ -4,6 +4,15 @@ import { CreditStatus } from "@prisma/client/index";
 
 import { prisma } from "@/lib/db/prisma";
 
+// ─── Credit Categories ──────────────────────────────────
+
+export async function getCreditCategories() {
+  return prisma.creditCategory.findMany({
+    select: { name: true, defaultAmount: true },
+    orderBy: { name: "asc" },
+  });
+}
+
 // ─── Credit Balance (only APPROVED counts) ───────────────
 
 export async function getCreditBalance(userId: string) {
@@ -211,10 +220,4 @@ export async function rejectNomination(
   });
 }
 
-// ─── Credit Categories (lookup table) ────────────────────
 
-export async function getCreditCategories() {
-  return prisma.creditCategory.findMany({
-    orderBy: { name: "asc" },
-  });
-}

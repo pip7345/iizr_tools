@@ -38,14 +38,6 @@ export function InvitationForm() {
         <FormMessage message={state.errors?.name?.[0]} tone="error" />
       </div>
 
-      <div className="space-y-2">
-        <label htmlFor="email" className="text-sm font-medium text-[hsl(var(--foreground))]">
-          Email
-        </label>
-        <Input id="email" name="email" type="email" placeholder="jane@example.com" required />
-        <FormMessage message={state.errors?.email?.[0]} tone="error" />
-      </div>
-
       <FormMessage
         message={state.message}
         tone={state.status === "success" ? "success" : state.status === "error" ? "error" : "default"}

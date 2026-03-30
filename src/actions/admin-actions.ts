@@ -36,7 +36,6 @@ export async function adminCreateInvitationAction(
   const parsed = adminInvitationSchema.safeParse({
     sponsorId: formData.get("sponsorId"),
     name: formData.get("name"),
-    email: formData.get("email"),
   });
 
   if (!parsed.success) {
@@ -50,7 +49,6 @@ export async function adminCreateInvitationAction(
   try {
     await createInvitation(parsed.data.sponsorId, {
       name: parsed.data.name,
-      email: parsed.data.email || null,
     });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Could not create invitation.";
@@ -160,6 +158,7 @@ export async function adminCreateCreditAction(
     userId: formData.get("userId"),
     amount: formData.get("amount"),
     description: formData.get("description"),
+    category: formData.get("category") || undefined,
   });
 
   if (!parsed.success) {
@@ -176,6 +175,7 @@ export async function adminCreateCreditAction(
       parsed.data.userId,
       parsed.data.amount,
       parsed.data.description,
+      parsed.data.category ?? "admin",
     );
   } catch {
     return { status: "error", message: "Could not create credit." };
