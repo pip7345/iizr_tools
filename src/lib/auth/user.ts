@@ -65,9 +65,9 @@ async function syncUserFromClerk() {
   // 3. Signup code match — invitation link was used (no email match)
   const signupCode = cookieStore.get(SIGNUP_COOKIE)?.value;
   if (signupCode) {
-    cookieStore.delete(SIGNUP_COOKIE);
     const pending = await prisma.user.findUnique({ where: { signupCode } });
     if (pending && pending.clerkId === null && pending.status === UserStatus.PENDING_SIGNUP) {
+      try { cookieStore.delete(SIGNUP_COOKIE); } catch { /* not mutable in Server Component context */ }
       return prisma.user.update({
         where: { id: pending.id },
         data: {
@@ -86,7 +86,6 @@ async function syncUserFromClerk() {
   let sponsorId: string | undefined;
 
   if (referralCode) {
-    cookieStore.delete(REFERRAL_COOKIE);
     const sponsor = await prisma.user.findUnique({
       where: { referralCode },
       select: { id: true, status: true },
@@ -94,6 +93,7 @@ async function syncUserFromClerk() {
     if (sponsor && sponsor.status === UserStatus.ACTIVE) {
       sponsorId = sponsor.id;
     }
+    try { cookieStore.delete(REFERRAL_COOKIE); } catch { /* not mutable in Server Component context */ }
   }
 
   // 5. Create new user
